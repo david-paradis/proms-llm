@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-import openai
-import anthropic
 import base64
 
 from google import genai
@@ -148,38 +146,7 @@ def get_llm_response(prompt, provider="google", model=None):
     response = ""
     
     try:
-        if provider == "openai":
-            # Configuration OpenAI
-            openai_api_key = os.getenv("OPENAI_API_KEY")
-            if not openai_api_key:
-                return "Erreur: Clé API OpenAI non configurée"
-                
-            client = openai.OpenAI(api_key=openai_api_key)
-            completion = client.chat.completions.create(
-                model=model or "gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Tu es un assistant médical spécialisé dans l'analyse de PROMs."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            response = completion.choices[0].message.content
-            
-        elif provider == "anthropic":
-            # Configuration Anthropic
-            anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-            if not anthropic_api_key:
-                return "Erreur: Clé API Anthropic non configurée"
-                
-            client = anthropic.Anthropic(api_key=anthropic_api_key)
-            message = client.messages.create(
-                model=model or "claude-3-sonnet-20240229",
-                max_tokens=1000,
-                system="Tu es un assistant médical spécialisé dans l'analyse de PROMs.",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            response = message.content[0].text
-            
-        elif provider == "google":
+        if provider == "google":
             # Configuration Google
             google_api_key = os.getenv("GOOGLE_API_KEY")
             if not google_api_key:
@@ -188,6 +155,7 @@ def get_llm_response(prompt, provider="google", model=None):
             # Utilisation de l'approche client pour Gemini
             client = genai.Client(api_key=google_api_key)
             
+            # Création du contenu
             contents = [
                 types.Content(
                     role="user",
@@ -195,13 +163,15 @@ def get_llm_response(prompt, provider="google", model=None):
                 ),
             ]
             
-            model_obj = model or "gemini-2.5-pro-exp-03-25"
+            # Configuration de la génération
+            model_name = model or "gemini-2.5-pro-exp-03-25"
             generate_content_config = types.GenerateContentConfig(
                 response_mime_type="text/plain",
             )
             
+            # Génération de la réponse
             response_obj = client.models.generate_content(
-                model=model_obj,
+                model=model_name,
                 contents=contents,
                 config=generate_content_config
             )
@@ -225,35 +195,23 @@ st.sidebar.header("Paramètres")
 # Sélection du provider LLM
 llm_provider = st.sidebar.selectbox(
     "Choisissez un fournisseur de LLM",
-    options=["openai", "anthropic", "google"],
-    index=2  # Google par défaut
+    options=["google"],
+    index=0  # Google par défaut
 )
 
 # Modèles pour chaque fournisseur
 model_options = {
-    "openai": ["gpt-3.5-turbo", "gpt-4"],
-    "anthropic": ["claude-3-haiku-20240307", "claude-3-sonnet-20240229", "claude-3-opus-20240229"],
     "google": ["gemini-1.0-pro", "gemini-1.5-pro", "gemini-2.5-pro-exp-03-25"]
 }
 
 llm_model = st.sidebar.selectbox(
     "Choisissez un modèle",
     options=model_options[llm_provider],
-    index=2 if llm_provider == "google" else 0  # gemini-2.5-pro-exp-03-25 par défaut pour Google
+    index=2  # gemini-2.5-pro-exp-03-25 par défaut pour Google
 )
 
 # Configuration API (clés stockées dans .env)
-if llm_provider == "openai" and not os.getenv("OPENAI_API_KEY"):
-    st.sidebar.text_input("Clé API OpenAI", type="password", key="openai_api_key")
-    if st.session_state.get("openai_api_key"):
-        os.environ["OPENAI_API_KEY"] = st.session_state.openai_api_key
-        
-elif llm_provider == "anthropic" and not os.getenv("ANTHROPIC_API_KEY"):
-    st.sidebar.text_input("Clé API Anthropic", type="password", key="anthropic_api_key")
-    if st.session_state.get("anthropic_api_key"):
-        os.environ["ANTHROPIC_API_KEY"] = st.session_state.anthropic_api_key
-        
-elif llm_provider == "google" and not os.getenv("GOOGLE_API_KEY"):
+if llm_provider == "google" and not os.getenv("GOOGLE_API_KEY"):
     st.sidebar.text_input("Clé API Google", type="password", key="google_api_key")
     if st.session_state.get("google_api_key"):
         os.environ["GOOGLE_API_KEY"] = st.session_state.google_api_key
