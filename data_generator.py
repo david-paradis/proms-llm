@@ -7,10 +7,21 @@ import csv
 # EQ-5D Dimensions
 EQ5D_DIMENSIONS = ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]
 
+# Catégories de questions pour le questionnaire sur les implants cochléaires
+COCHLEAR_IMPLANT_CATEGORIES = {
+    "practice": ["practice_1", "practice_2"],
+    "noisy": ["noisy_1", "noisy_2", "noisy_3", "noisy_4"],
+    "academic": ["academic_1", "academic_2", "academic_3", "academic_4", "academic_5"],
+    "oral": ["oral_1", "oral_2", "oral_3"],
+    "fatigue": ["fatigue_1", "fatigue_2"],
+    "social": ["social_1", "social_2", "social_3", "social_4"],
+    "emotional": ["emotional_1", "emotional_2", "emotional_3", "emotional_4"]
+}
+
 def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_path="patients_proms.csv"):
     """
-    Génère des données synthétiques pour les scores OHS et EQ-5D et les enregistre dans un fichier CSV.
-    Chaque entrée correspond soit à un OHS, soit à un EQ-5D.
+    Génère des données synthétiques pour les scores OHS, EQ-5D et le questionnaire sur les implants cochléaires.
+    Chaque entrée correspond à un type de questionnaire.
     
     Parameters:
     - num_patients: Nombre de patients à générer
@@ -36,18 +47,21 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
         # Premier score (baseline)
         if evolution_pattern == "improvement":
             initial_ohs_score = random.randint(10, 25)  # Score bas (symptômes modérés à sévères)
+            initial_cochlear_scores = {q: random.randint(3, 4) for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category}
         elif evolution_pattern == "deterioration":
             initial_ohs_score = random.randint(30, 45)  # Score élevé (bon état initial)
+            initial_cochlear_scores = {q: random.randint(1, 2) for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category}
         else:
             initial_ohs_score = random.randint(15, 35)  # Score variable
+            initial_cochlear_scores = {q: random.randint(2, 3) for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category}
         
         # Génération des entrées pour ce patient
         dates = sorted([start_date + timedelta(days=random.randint(0, 700)) for _ in range(num_entries)])
         
         current_ohs_score = initial_ohs_score
+        current_cochlear_scores = initial_cochlear_scores.copy()
         
         # Initial state for EQ-5D (dimension score 1 = good, vas 100 = good)
-        # Start with moderate problems (scores 2-4) and moderate VAS (30-70)
         initial_eq_dims = {dim: random.randint(2, 4) for dim in EQ5D_DIMENSIONS}
         initial_eq_vas = random.randint(30, 70)
         if evolution_pattern == "improvement": # Start worse
@@ -60,7 +74,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
         current_eq_vas = initial_eq_vas
 
         for i, date in enumerate(dates):
-            q_type = random.choice(["OHS", "EQ-5D"])
+            q_type = random.choice(["OHS", "EQ-5D", "Cochlear Implant"])
             entry = {
                 "patient_id": patient_id,
                 "date_collecte": date.strftime("%Y-%m-%d"),
@@ -156,6 +170,46 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
                 initial_eq_dims = current_eq_dims.copy() # Update baseline for next calc
                 initial_eq_vas = current_eq_vas
 
+            elif q_type == "Cochlear Implant":
+                # Génération des scores pour le questionnaire sur les implants cochléaires
+                if evolution_pattern == "improvement":
+                    change_tendency = -1  # Amélioration
+                elif evolution_pattern == "deterioration":
+                    change_tendency = 1   # Détérioration
+                elif evolution_pattern == "fluctuating":
+                    change_tendency = random.choice([-1, 0, 1])
+                else:  # stable
+                    change_tendency = 0
+
+                # Mettre à jour les scores pour chaque question
+                for category, questions in COCHLEAR_IMPLANT_CATEGORIES.items():
+                    for q in questions:
+                        # Appliquer le changement avec une certaine variabilité
+                        change = change_tendency + random.choice([-1, 0, 0, 1])
+                        current_cochlear_scores[q] = max(1, min(4, current_cochlear_scores[q] + change))
+                        entry[f"score_{q}"] = current_cochlear_scores[q]
+
+                # Ajuster les scores en fonction de la cohérence entre les catégories
+                # Par exemple, si le fonctionnement académique s'améliore, la fatigue devrait diminuer
+                if "academic_2" in current_cochlear_scores and "fatigue_2" in current_cochlear_scores:
+                    if current_cochlear_scores["academic_2"] < 3:  # Bonne performance académique
+                        current_cochlear_scores["fatigue_2"] = min(4, current_cochlear_scores["fatigue_2"] + 1)
+                    else:  # Difficultés académiques
+                        current_cochlear_scores["fatigue_2"] = max(1, current_cochlear_scores["fatigue_2"] - 1)
+                    entry["score_fatigue_2"] = current_cochlear_scores["fatigue_2"]
+
+                # Ajuster le bien-être émotionnel en fonction des autres facteurs
+                if "emotional_1" in current_cochlear_scores:
+                    # Calculer un score de bien-être basé sur les autres catégories
+                    social_score = sum(current_cochlear_scores.get(q, 2) for q in COCHLEAR_IMPLANT_CATEGORIES["social"]) / 4
+                    academic_score = sum(current_cochlear_scores.get(q, 2) for q in COCHLEAR_IMPLANT_CATEGORIES["academic"]) / 5
+                    fatigue_score = sum(current_cochlear_scores.get(q, 2) for q in COCHLEAR_IMPLANT_CATEGORIES["fatigue"]) / 2
+                    
+                    avg_score = (social_score + academic_score + fatigue_score) / 3
+                    emotional_change = 1 if avg_score < 2.5 else -1
+                    current_cochlear_scores["emotional_1"] = max(1, min(4, current_cochlear_scores["emotional_1"] + emotional_change))
+                    entry["score_emotional_1"] = current_cochlear_scores["emotional_1"]
+
             data.append(entry)
     
     # Création du DataFrame et sauvegarde en CSV
@@ -164,7 +218,8 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
     # Define columns order - ensure all possible score columns are included
     ohs_q_cols = [f"score_q{i}" for i in range(1, 13)]
     eq_dim_cols = [f"score_eq_{dim}" for dim in EQ5D_DIMENSIONS]
-    cols = ["patient_id", "date_collecte", "questionnaire_type", "score_total"] + ohs_q_cols + eq_dim_cols + ["score_eq_vas"]
+    cochlear_cols = [f"score_{q}" for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category]
+    cols = ["patient_id", "date_collecte", "questionnaire_type", "score_total"] + ohs_q_cols + eq_dim_cols + ["score_eq_vas"] + cochlear_cols
     
     # Add missing columns with NaN
     for col in cols:
@@ -175,7 +230,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
     df.sort_values(by=["patient_id", "date_collecte"], inplace=True)
     df.to_csv(file_path, index=False, quoting=csv.QUOTE_NONNUMERIC) # Quote non-numeric to handle NaNs properly
     
-    print(f"Données synthétiques (OHS & EQ-5D) générées et sauvegardées dans {file_path}")
+    print(f"Données synthétiques (OHS, EQ-5D & Cochlear Implant) générées et sauvegardées dans {file_path}")
     return df
 
 if __name__ == "__main__":

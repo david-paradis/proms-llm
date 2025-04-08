@@ -51,6 +51,67 @@ EQ5D_QUESTIONS = {
     "anxiety_depression": "5. ANXIÉTÉ/DÉPRESSION : Veuillez cocher la case qui décrit le mieux votre niveau d'anxiété/dépression aujourd'hui."
 }
 
+# Texte des questions pour le questionnaire sur les implants cochléaires
+COCHLEAR_IMPLANT_QUESTIONS = {
+    "practice_1": "À quelle fréquence vas-tu sur la lune?",
+    "practice_2": "À quel point est-il difficile pour toi de soulever ces livres?",
+    "noisy_1": "À quel point est-il difficile d'entendre les gens à la cafétéria ou dans le local où tu manges le midi?",
+    "noisy_2": "À quel point est-il difficile pour toi de comprendre les paroles d'une chanson?",
+    "noisy_3": "À quel point est-il difficile pour toi de comprendre lorsque tu écoutes la télévision ou des films?",
+    "noisy_4": "À quel point est-il difficile pour toi d'entendre les autres quand tu vas manger au restaurant?",
+    "academic_1": "Utilises-tu un micro à l'école?",
+    "academic_2": "À quel point est-il difficile pour toi d'entendre en classe?",
+    "academic_3": "À quel point la lecture est-elle difficile pour toi à l'école?",
+    "academic_4": "À quel point est-il difficile pour toi de rester attentif à l'école?",
+    "academic_5": "À quel point est-il difficile pour toi de terminer tes devoirs seul(e)?",
+    "oral_1": "À quel point est-il difficile pour les gens de comprendre ce que tu dis?",
+    "oral_2": "À quel point est-il difficile de comprendre ce qui se passe dans un groupe?",
+    "oral_3": "À quel point est-il difficile pour toi de comprendre quelqu'un qui te parle?",
+    "fatigue_1": "À quelle fréquence enlèves-tu ton implant cochléaire pour prendre une pause?",
+    "fatigue_2": "À quel point te sens-tu fatigué(e) après avoir écouté longtemps?",
+    "social_1": "Combien d'amis as-tu?",
+    "social_2": "À quel point es-tu à l'aise de te faire de nouveaux amis?",
+    "social_3": "À quelle fréquence les gens se moquent-ils de ton implant cochléaire?",
+    "social_4": "À quelle fréquence te retires-tu lorsque tu es avec d'autres enfants?",
+    "emotional_1": "À quelle fréquence t'es-tu senti(e) heureux(se) la semaine dernière?",
+    "emotional_2": "À quelle fréquence t'es-tu senti(e) triste la semaine dernière?",
+    "emotional_3": "À quelle fréquence t'es-tu senti(e) de mauvaise humeur la semaine dernière?",
+    "emotional_4": "À quelle fréquence t'es-tu senti(e) en colère la semaine dernière?"
+}
+
+# Signification des scores pour le questionnaire sur les implants cochléaires
+COCHLEAR_IMPLANT_SCORES_MEANING = """
+Échelle de scores pour les questions de difficulté (pas difficile, un peu difficile, difficile, très difficile):
+- 1 = Pas difficile
+- 2 = Un peu difficile
+- 3 = Difficile
+- 4 = Très difficile
+
+Échelle de scores pour les questions de fréquence (toujours, souvent, parfois, jamais):
+- 1 = Toujours
+- 2 = Souvent
+- 3 = Parfois
+- 4 = Jamais
+
+Échelle de scores pour le nombre d'amis:
+- 1 = Aucun ami
+- 2 = Quelques amis
+- 3 = Des amis
+- 4 = Beaucoup d'amis
+
+Échelle de scores pour le confort social:
+- 1 = Très à l'aise
+- 2 = À l'aise
+- 3 = Un peu à l'aise
+- 4 = Pas à l'aise
+
+Échelle de scores pour la fatigue:
+- 1 = Pas fatigué(e)
+- 2 = Un peu fatigué(e)
+- 3 = Fatigué(e)
+- 4 = Très fatigué(e)
+"""
+
 # Signification des scores pour chaque dimension EQ-5D (échelle de 1 à 5)
 EQ5D_SCORES_MEANING = """
 Échelle de scores pour chaque dimension (plus le score est bas, meilleur est l'état de santé):
@@ -261,6 +322,69 @@ Analyse ces scores en te basant sur les directives fournies et les réponses dé
 
 Utilise un langage clinique précis mais accessible. Organise ta réponse avec des sous-titres pour faciliter la lecture rapide.
 """
+    elif questionnaire_type == "Cochlear Implant":
+        # Informations sur l'échelle de mesure
+        scale_info = COCHLEAR_IMPLANT_SCORES_MEANING
+        
+        # Formatage des questions et de leur signification
+        questions_text = "\n".join([f"{key}: {text}" for key, text in COCHLEAR_IMPLANT_QUESTIONS.items()])
+        
+        # Formatage des données par date de collecte avec scores détaillés
+        detailed_scores = []
+        for _, row in patient_data.iterrows():
+            date = row['date_collecte'].strftime('%Y-%m-%d')
+            
+            # Récupération des scores par catégorie
+            categories = {
+                "Pratique": ["practice_1", "practice_2"],
+                "Environnements bruyants": ["noisy_1", "noisy_2", "noisy_3", "noisy_4"],
+                "Fonctionnement académique": ["academic_1", "academic_2", "academic_3", "academic_4", "academic_5"],
+                "Communication orale": ["oral_1", "oral_2", "oral_3"],
+                "Fatigue": ["fatigue_1", "fatigue_2"],
+                "Fonctionnement social": ["social_1", "social_2", "social_3", "social_4"],
+                "Fonctionnement émotionnel": ["emotional_1", "emotional_2", "emotional_3", "emotional_4"]
+            }
+            
+            category_scores = []
+            for category, questions in categories.items():
+                scores = []
+                for q in questions:
+                    q_col = f'score_{q}'
+                    if q_col in row and not pd.isna(row[q_col]):
+                        scores.append(f"{q}: {row[q_col]}/4")
+                if scores:
+                    category_scores.append(f"{category}: {', '.join(scores)}")
+            
+            detailed_scores.append(f"Date: {date}\n" + "\n".join(category_scores))
+        
+        detailed_scores_text = "\n\n".join(detailed_scores)
+        
+        # Création du prompt complet
+        prompt = f"""Tu es un assistant médical spécialisé dans l'analyse de questionnaires PROMs. Ton but est de fournir une analyse détaillée mais concise pour un clinicien.
+
+Contexte Clinique:
+{interpretation_guide}
+
+{scale_info}
+
+Voici les questions du questionnaire sur les implants cochléaires:
+{questions_text}
+
+Données du Patient {patient_id}:
+{detailed_scores_text}
+
+Tâche:
+Analyse ces scores en te basant sur les directives fournies et les réponses détaillées aux questions. Fournis:
+
+1. Un résumé général (2-3 phrases) sur l'état actuel du patient et son évolution globale
+2. Une analyse des domaines spécifiques les plus problématiques pour le patient
+3. Une analyse des domaines qui se sont le plus améliorés ou détériorés entre les collectes
+4. Une évaluation de l'impact sur le fonctionnement académique et social
+5. Une analyse du bien-être émotionnel et de la fatigue
+6. Des recommandations cliniques potentielles basées sur les réponses aux questions spécifiques
+
+Utilise un langage clinique précis mais accessible. Organise ta réponse avec des sous-titres pour faciliter la lecture rapide.
+"""
     else:
         prompt = "Type de questionnaire non pris en charge."
     
@@ -338,7 +462,7 @@ llm_model = st.sidebar.selectbox(
 # Sélection du type de questionnaire
 questionnaire_type = st.sidebar.radio(
     "Sélectionnez le type de questionnaire à analyser",
-    options=["OHS", "EQ-5D"],
+    options=["OHS", "EQ-5D", "Cochlear Implant"],
     index=0  # OHS par défaut
 )
 
@@ -353,12 +477,13 @@ st.sidebar.markdown("---")
 if st.sidebar.button("Régénérer les données synthétiques"):
     from data_generator import generate_synthetic_data
     data = generate_synthetic_data(file_path="patients_proms.csv")
-    st.experimental_rerun()
+    st.rerun()
 
 # Titre dynamique selon le questionnaire sélectionné
 questionnaire_full_names = {
     "OHS": "Oxford Hip Score",
-    "EQ-5D": "EuroQol 5-Dimension"
+    "EQ-5D": "EuroQol 5-Dimension",
+    "Cochlear Implant": "Questionnaire sur les implants cochléaires pour enfants d'âge scolaire"
 }
 st.header(f"Analyse du questionnaire {questionnaire_full_names.get(questionnaire_type, questionnaire_type)}")
 
@@ -382,6 +507,17 @@ default_interpretation_guides = {
 - Une variation de l'EVA de 7-10 points est généralement considérée comme cliniquement significative.
 - Porter attention aux dimensions avec les scores les plus élevés (≥3) qui nécessitent une attention particulière.
 - Analyser si les améliorations/détériorations dans des dimensions spécifiques se reflètent dans le score EVA.
+- Demeurer nuancé et faire des suggestions extrêmement délicatement, veillant à ne pas assumer le rôle d'un clinicien.""",
+    
+    "Cochlear Implant": """Interprétation clinique du questionnaire sur les implants cochléaires pour enfants d'âge scolaire:
+- Les scores vont de 1 (meilleur) à 4 (pire) pour la plupart des questions.
+- Pour les questions de difficulté, un score plus élevé indique plus de difficultés.
+- Pour les questions de fréquence, un score plus élevé indique une fréquence plus faible.
+- Analyser les différentes catégories (environnements bruyants, fonctionnement académique, communication orale, fatigue, fonctionnement social, fonctionnement émotionnel) séparément.
+- Porter une attention particulière aux scores élevés (≥3) qui indiquent des difficultés importantes.
+- Noter toute détérioration dans les domaines académiques ou sociaux qui pourrait nécessiter des interventions.
+- Analyser l'impact de la fatigue sur le fonctionnement quotidien.
+- Évaluer le bien-être émotionnel et social de l'enfant.
 - Demeurer nuancé et faire des suggestions extrêmement délicatement, veillant à ne pas assumer le rôle d'un clinicien."""
 }
 
@@ -478,6 +614,36 @@ if selected_patient:
                 **Échelle visuelle analogique (EVA):** Sur une échelle de 0 à 100, où 0 représente le pire état de santé imaginable et 100 le meilleur état de santé imaginable, comment évaluez-vous votre état de santé aujourd'hui?
                 """)
         
+        elif questionnaire_type == "Cochlear Implant":
+            st.subheader(f"Scores {questionnaire_type} du patient")
+            
+            # Extraire et formater les colonnes pertinentes pour le questionnaire sur les implants cochléaires
+            cochlear_implant_columns = ['date_collecte']
+            cochlear_implant_columns.extend([f'score_{q}' for q in range(1, 13)])
+            
+            # Vérifier quelles colonnes sont présentes
+            available_cochlear_implant_columns = [col for col in cochlear_implant_columns if col in patient_data.columns]
+            
+            if len(available_cochlear_implant_columns) > 1:  # Au moins 'date_collecte' et une autre colonne
+                display_df = patient_data[available_cochlear_implant_columns].copy()
+                
+                # Renommer les colonnes pour meilleure lisibilité
+                rename_map = {
+                    'date_collecte': 'Date de collecte'
+                }
+                rename_map.update({f'score_{q}': f'Q{q}' for q in range(1, 13)})
+                display_df = display_df.rename(columns=rename_map)
+                
+                st.dataframe(display_df, use_container_width=True)
+            else:
+                st.info("Aucune donnée détaillée pour le questionnaire sur les implants cochléaires n'est disponible pour ce patient.")
+            
+            # Affichage des questions pour le questionnaire sur les implants cochléaires (collapsible)
+            with st.expander("Voir les questions du questionnaire sur les implants cochléaires"):
+                st.subheader("Questions du questionnaire sur les implants cochléaires:")
+                for q, question in COCHLEAR_IMPLANT_QUESTIONS.items():
+                    st.write(f"**{q}:** {question}")
+        
         # Zone pour les directives d'interprétation avec valeur par défaut selon le questionnaire
         interpretation_guide = st.text_area(
             "Directives d'interprétation clinique",
@@ -492,8 +658,10 @@ if selected_patient:
         with col1:
             if questionnaire_type == "OHS":
                 analysis_button_text = "Analyse simplifiée (scores totaux)"
-            else:
+            elif questionnaire_type == "EQ-5D":
                 analysis_button_text = "Analyse simplifiée (dimensions et EVA)"
+            else:
+                analysis_button_text = "Analyse simplifiée (scores totaux)"
                 
             if st.button(analysis_button_text, type="primary"):
                 with st.spinner("Analyse en cours..."):
@@ -515,8 +683,10 @@ if selected_patient:
         with col2:
             if questionnaire_type == "OHS":
                 detailed_button_text = "Analyse détaillée (scores par question)"
-            else:
+            elif questionnaire_type == "EQ-5D":
                 detailed_button_text = "Analyse détaillée (par dimension et EVA)"
+            else:
+                detailed_button_text = "Analyse détaillée (scores totaux)"
                 
             if st.button(detailed_button_text, type="primary"):
                 with st.spinner("Analyse détaillée en cours..."):
