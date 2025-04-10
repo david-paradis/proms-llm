@@ -149,26 +149,42 @@ def get_patient_data(df, patient_id, questionnaire_type=None):
 
 def construct_prompt(patient_data, interpretation_guide, questionnaire_type):
     """Construit le prompt pour le LLM basé sur les données du patient et les directives d'interprétation"""
+    patient_id = patient_data['patient_id'].iloc[0]
+    date_operation = patient_data['date_operation'].iloc[0]
+    
+    # Récupérer les références pour ce type de questionnaire
+    references = patient_data[patient_data['reference_professional'].notna()].copy()
+    references_text = ""
+    if not references.empty:
+        references_text = "\nRéférences à d'autres professionnels de la santé:\n"
+        for _, ref in references.iterrows():
+            references_text += f"- {ref['reference_professional']} le {ref['reference_date']}\n"
+    
     # Formatage des données pour le prompt
     if questionnaire_type == "OHS":
-        scores_data = [(row['date_collecte'].strftime('%Y-%m-%d'), row['score_total']) 
+        scores_data = [(row['date_collecte'].strftime('%Y-%m-%d'), row['score_total'], row['periode']) 
                        for _, row in patient_data.iterrows()]
         
-        prompt = f"""Tu es un assistant médical spécialisé dans l'analyse de questionnaires PROMs. Ton but est de fournir un résumé clair et concis pour un clinicien occupé.
+        prompt = f"""Tu es un assistant médical spécialisé dans l'analyse de questionnaires PROMs. Ton but est de fournir un résumé clair et concis pour un clinicien.
 
 Contexte Clinique:
 {interpretation_guide}
 
+Date d'opération: {date_operation}
+{references_text}
+
 Données du Patient:
-Voici les scores OHS pour le patient {patient_data['patient_id'].iloc[0]} :
+Voici les scores OHS pour le patient {patient_id} :
 {scores_data}
 
 Tâche:
 Analyse ces scores en te basant sur les directives fournies. Rédige un résumé (max 3-4 phrases) mettant en lumière : 
 1. Le statut actuel du patient selon le dernier score
 2. L'évolution globale depuis la première mesure
-3. Tout changement notable entre les deux dernières mesures
-4. Toute recommandation pertinente basée sur ces données
+3. La comparaison des scores pré et post-opératoires
+4. L'impact potentiel des références à d'autres professionnels sur l'évolution des scores
+5. Tout changement notable entre les deux dernières mesures
+6. Toute recommandation pertinente basée sur ces données
 
 Utilise un langage simple et direct adapté à un professionnel de santé.
 """
@@ -178,6 +194,7 @@ Utilise un langage simple et direct adapté à un professionnel de santé.
         eq5d_data = []
         for _, row in patient_data.iterrows():
             date = row['date_collecte'].strftime('%Y-%m-%d')
+            periode = row['periode']
             dimensions = {}
             for dim in ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]:
                 col_name = f"score_eq_{dim}"
@@ -186,23 +203,70 @@ Utilise un langage simple et direct adapté à un professionnel de santé.
             
             vas_score = row.get('score_eq_vas')
             if not pd.isna(vas_score):
-                eq5d_data.append((date, dimensions, vas_score))
+                eq5d_data.append((date, dimensions, vas_score, periode))
         
-        prompt = f"""Tu es un assistant médical spécialisé dans l'analyse de questionnaires PROMs. Ton but est de fournir un résumé clair et concis pour un clinicien occupé.
+        prompt = f"""Tu es un assistant médical spécialisé dans l'analyse de questionnaires PROMs. Ton but est de fournir un résumé clair et concis pour un clinicien.
 
 Contexte Clinique:
 {interpretation_guide}
 
+Date d'opération: {date_operation}
+{references_text}
+
 Données du Patient:
-Voici les scores EQ-5D pour le patient {patient_data['patient_id'].iloc[0]} :
+Voici les scores EQ-5D pour le patient {patient_id} :
 {eq5d_data}
 
 Tâche:
 Analyse ces scores en te basant sur les directives fournies. Rédige un résumé (max 3-4 phrases) mettant en lumière : 
 1. Le statut actuel du patient selon les derniers scores des dimensions et l'EVA
 2. L'évolution globale depuis la première mesure
-3. Tout changement notable entre les deux dernières mesures
-4. Toute recommandation pertinente basée sur ces données
+3. La comparaison des scores pré et post-opératoires
+4. L'impact potentiel des références à d'autres professionnels sur l'évolution des scores
+5. Tout changement notable entre les deux dernières mesures
+6. Toute recommandation pertinente basée sur ces données
+
+Utilise un langage simple et direct adapté à un professionnel de santé.
+"""
+    
+    elif questionnaire_type == "Cochlear Implant":
+        # Pour le questionnaire sur les implants cochléaires
+        cochlear_data = []
+        for _, row in patient_data.iterrows():
+            date = row['date_collecte'].strftime('%Y-%m-%d')
+            periode = row['periode']
+            scores = {}
+            for category, questions in COCHLEAR_IMPLANT_CATEGORIES.items():
+                category_scores = {}
+                for q in questions:
+                    col_name = f"score_{q}"
+                    if col_name in row and not pd.isna(row[col_name]):
+                        category_scores[q] = row[col_name]
+                if category_scores:
+                    scores[category] = category_scores
+            if scores:
+                cochlear_data.append((date, scores, periode))
+        
+        prompt = f"""Tu es un assistant médical spécialisé dans l'analyse de questionnaires PROMs. Ton but est de fournir un résumé clair et concis pour un clinicien.
+
+Contexte Clinique:
+{interpretation_guide}
+
+Date d'opération: {date_operation}
+{references_text}
+
+Données du Patient:
+Voici les scores du questionnaire sur les implants cochléaires pour le patient {patient_id} :
+{cochlear_data}
+
+Tâche:
+Analyse ces scores en te basant sur les directives fournies. Rédige un résumé (max 3-4 phrases) mettant en lumière : 
+1. Le statut actuel du patient selon les derniers scores
+2. L'évolution globale depuis la première mesure
+3. La comparaison des scores pré et post-opératoires
+4. L'impact potentiel des références à d'autres professionnels sur l'évolution des scores
+5. Tout changement notable entre les deux dernières mesures
+6. Toute recommandation pertinente basée sur ces données
 
 Utilise un langage simple et direct adapté à un professionnel de santé.
 """
@@ -214,6 +278,15 @@ Utilise un langage simple et direct adapté à un professionnel de santé.
 def construct_detailed_prompt(patient_data, interpretation_guide, questionnaire_type):
     """Construit un prompt détaillé incluant les scores de chaque question et leur texte"""
     patient_id = patient_data['patient_id'].iloc[0]
+    date_operation = patient_data['date_operation'].iloc[0]
+    
+    # Récupérer les références pour ce type de questionnaire
+    references = patient_data[patient_data['reference_professional'].notna()].copy()
+    references_text = ""
+    if not references.empty:
+        references_text = "\nRéférences à d'autres professionnels de la santé:\n"
+        for _, ref in references.iterrows():
+            references_text += f"- {ref['reference_professional']} le {ref['reference_date']}\n"
     
     if questionnaire_type == "OHS":
         # Informations sur l'échelle de mesure OHS
@@ -226,7 +299,11 @@ def construct_detailed_prompt(patient_data, interpretation_guide, questionnaire_
         detailed_scores = []
         for _, row in patient_data.iterrows():
             date = row['date_collecte'].strftime('%Y-%m-%d')
+            periode = "pré-opératoire" if row['periode'] == "pre" else "post-opératoire"
             score_total = row['score_total']
+            reference_info = ""
+            if pd.notna(row.get('reference_professional')):
+                reference_info = f" (Référence à {row['reference_professional']} le {row['reference_date']})"
             
             # Récupération des scores par question
             question_scores = []
@@ -237,7 +314,7 @@ def construct_detailed_prompt(patient_data, interpretation_guide, questionnaire_
                     question_scores.append(f"Q{q}: {q_score}/4")
             
             question_details = ", ".join(question_scores)
-            detailed_scores.append(f"Date: {date}, Score total: {score_total}/48\nScores détaillés: {question_details}")
+            detailed_scores.append(f"Date: {date} ({periode}){reference_info}, Score total: {score_total}/48\nScores détaillés: {question_details}")
         
         detailed_scores_text = "\n\n".join(detailed_scores)
         
@@ -246,6 +323,9 @@ def construct_detailed_prompt(patient_data, interpretation_guide, questionnaire_
 
 Contexte Clinique:
 {interpretation_guide}
+
+Date d'opération: {date_operation}
+{references_text}
 
 {scale_info}
 
@@ -261,7 +341,12 @@ Analyse ces scores en te basant sur les directives fournies et les réponses dé
 1. Un résumé général (2-3 phrases) sur l'état actuel du patient et son évolution globale
 2. Une analyse des domaines spécifiques les plus problématiques pour le patient (en te référant aux questions spécifiques)
 3. Une analyse des domaines qui se sont le plus améliorés ou détériorés entre les collectes
-4. Des recommandations cliniques potentielles basées sur les réponses aux questions spécifiques
+4. Une analyse détaillée des changements pré et post-opératoires
+5. Une analyse de l'impact des références à d'autres professionnels sur l'évolution des scores, en particulier:
+   - L'impact des physiothérapeutes/kinésithérapeutes sur la mobilité et la douleur
+   - L'impact des ergothérapeutes sur les activités quotidiennes
+   - La temporalité des améliorations par rapport aux dates de référence
+6. Des recommandations cliniques potentielles basées sur les réponses aux questions spécifiques
 
 Utilise un langage clinique précis mais accessible. Organise ta réponse avec des sous-titres pour faciliter la lecture rapide.
 """
@@ -277,6 +362,10 @@ Utilise un langage clinique précis mais accessible. Organise ta réponse avec d
         detailed_scores = []
         for _, row in patient_data.iterrows():
             date = row['date_collecte'].strftime('%Y-%m-%d')
+            periode = "pré-opératoire" if row['periode'] == "pre" else "post-opératoire"
+            reference_info = ""
+            if pd.notna(row.get('reference_professional')):
+                reference_info = f" (Référence à {row['reference_professional']} le {row['reference_date']})"
             
             # Récupération des scores des dimensions
             dimension_scores = []
@@ -293,7 +382,7 @@ Utilise un langage clinique précis mais accessible. Organise ta réponse avec d
                 vas_text = f"{vas_score}/100"
             
             dimension_details = ", ".join(dimension_scores)
-            detailed_scores.append(f"Date: {date}\nDimensions: {dimension_details}\nÉchelle visuelle analogique (EVA): {vas_text}")
+            detailed_scores.append(f"Date: {date} ({periode}){reference_info}\nDimensions: {dimension_details}\nÉchelle visuelle analogique (EVA): {vas_text}")
         
         detailed_scores_text = "\n\n".join(detailed_scores)
         
@@ -302,6 +391,9 @@ Utilise un langage clinique précis mais accessible. Organise ta réponse avec d
 
 Contexte Clinique:
 {interpretation_guide}
+
+Date d'opération: {date_operation}
+{references_text}
 
 {scale_info}
 
@@ -318,10 +410,17 @@ Analyse ces scores en te basant sur les directives fournies et les réponses dé
 2. Une analyse des dimensions spécifiques les plus problématiques pour le patient
 3. Une analyse des dimensions qui se sont le plus améliorées ou détériorées entre les collectes
 4. Une analyse de l'évolution de l'EVA et sa corrélation avec les dimensions
-5. Des recommandations cliniques potentielles basées sur les réponses aux dimensions spécifiques
+5. Une analyse détaillée des changements pré et post-opératoires
+6. Une analyse de l'impact des références à d'autres professionnels sur l'évolution des scores, en particulier:
+   - L'impact des psychologues sur l'anxiété/dépression et le bien-être général
+   - L'impact des travailleurs sociaux sur les activités courantes et l'autonomie
+   - L'impact des infirmiers spécialisés sur la douleur et les soins auto-administrés
+   - La temporalité des améliorations par rapport aux dates de référence
+7. Des recommandations cliniques potentielles basées sur les réponses aux dimensions spécifiques
 
 Utilise un langage clinique précis mais accessible. Organise ta réponse avec des sous-titres pour faciliter la lecture rapide.
 """
+    
     elif questionnaire_type == "Cochlear Implant":
         # Informations sur l'échelle de mesure
         scale_info = COCHLEAR_IMPLANT_SCORES_MEANING
@@ -333,6 +432,10 @@ Utilise un langage clinique précis mais accessible. Organise ta réponse avec d
         detailed_scores = []
         for _, row in patient_data.iterrows():
             date = row['date_collecte'].strftime('%Y-%m-%d')
+            periode = "pré-opératoire" if row['periode'] == "pre" else "post-opératoire"
+            reference_info = ""
+            if pd.notna(row.get('reference_professional')):
+                reference_info = f" (Référence à {row['reference_professional']} le {row['reference_date']})"
             
             # Récupération des scores par catégorie
             categories = {
@@ -355,7 +458,7 @@ Utilise un langage clinique précis mais accessible. Organise ta réponse avec d
                 if scores:
                     category_scores.append(f"{category}: {', '.join(scores)}")
             
-            detailed_scores.append(f"Date: {date}\n" + "\n".join(category_scores))
+            detailed_scores.append(f"Date: {date} ({periode}){reference_info}\n" + "\n".join(category_scores))
         
         detailed_scores_text = "\n\n".join(detailed_scores)
         
@@ -364,6 +467,9 @@ Utilise un langage clinique précis mais accessible. Organise ta réponse avec d
 
 Contexte Clinique:
 {interpretation_guide}
+
+Date d'opération: {date_operation}
+{references_text}
 
 {scale_info}
 
@@ -381,7 +487,13 @@ Analyse ces scores en te basant sur les directives fournies et les réponses dé
 3. Une analyse des domaines qui se sont le plus améliorés ou détériorés entre les collectes
 4. Une évaluation de l'impact sur le fonctionnement académique et social
 5. Une analyse du bien-être émotionnel et de la fatigue
-6. Des recommandations cliniques potentielles basées sur les réponses aux questions spécifiques
+6. Une analyse détaillée des changements pré et post-opératoires
+7. Une analyse de l'impact des références à d'autres professionnels sur l'évolution des scores, en particulier:
+   - L'impact des audiologistes sur la perception auditive et la communication
+   - L'impact des orthophonistes sur la communication orale et le langage
+   - L'impact des psychologues spécialisés sur le bien-être émotionnel et social
+   - La temporalité des améliorations par rapport aux dates de référence
+8. Des recommandations cliniques potentielles basées sur les réponses aux questions spécifiques
 
 Utilise un langage clinique précis mais accessible. Organise ta réponse avec des sous-titres pour faciliter la lecture rapide.
 """
@@ -537,57 +649,91 @@ if selected_patient:
     if patient_data.empty:
         st.warning(f"Aucune donnée {questionnaire_type} disponible pour ce patient.")
     else:
-        # Affichage des données brutes selon le type de questionnaire
+        # Afficher les informations du patient dans la barre latérale
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("Informations du patient")
+        
+        # Afficher la date d'opération
+        date_operation = patient_data['date_operation'].iloc[0]
+        st.sidebar.write(f"Date d'opération: {date_operation}")
+        
+        # Afficher un résumé des collectes
+        pre_op_count = len(patient_data[patient_data['periode'] == 'pre'])
+        post_op_count = len(patient_data[patient_data['periode'] == 'post'])
+        st.sidebar.write(f"Nombre de collectes pré-opératoires: {pre_op_count}")
+        st.sidebar.write(f"Nombre de collectes post-opératoires: {post_op_count}")
+        
+        # Afficher les références à d'autres professionnels
+        references = patient_data[patient_data['reference_professional'].notna()]
+        if not references.empty:
+            st.sidebar.markdown("---")
+            st.sidebar.subheader("Références à d'autres professionnels")
+            for _, ref in references.iterrows():
+                st.sidebar.write(f"- {ref['reference_professional']} le {ref['reference_date']}")
+        
+        # Afficher les données brutes selon le type de questionnaire
         if questionnaire_type == "OHS":
             st.subheader(f"Scores {questionnaire_type} du patient")
-            st.dataframe(
-                patient_data[['date_collecte', 'score_total']]
-                .rename(columns={
-                    'date_collecte': 'Date de collecte', 
-                    'score_total': 'Score total'
-                }),
-                use_container_width=True
-            )
             
-            # Affichage des scores détaillés par question (collapsible)
-            with st.expander("Voir les scores détaillés par question"):
-                # Créer un tableau avec les scores de chaque question pour chaque date
-                question_cols = [f'score_q{i}' for i in range(1, 13)]
-                
-                if all(col in patient_data.columns for col in question_cols):
-                    detail_df = patient_data[['date_collecte'] + question_cols].copy()
-                    
-                    # Renommer les colonnes pour meilleure lisibilité
-                    rename_cols = {'date_collecte': 'Date de collecte'}
-                    rename_cols.update({f'score_q{i}': f'Q{i}' for i in range(1, 13)})
-                    detail_df = detail_df.rename(columns=rename_cols)
-                    
-                    st.dataframe(detail_df, use_container_width=True)
-                    
-                    # Afficher le texte de chaque question pour référence
-                    st.subheader("Questions du questionnaire OHS:")
-                    for q_num, question in enumerate(OHS_QUESTIONS.values(), 1):
-                        st.write(f"**Q{q_num}:** {question.split('. ', 1)[1] if '. ' in question else question}")
-                else:
-                    st.info("Les données détaillées par question ne sont pas disponibles pour ce patient.")
-                    
-        elif questionnaire_type == "EQ-5D":
-            st.subheader(f"Scores {questionnaire_type} du patient")
-            
-            # Extraire et formater les colonnes pertinentes pour EQ-5D
-            eq_columns = ['date_collecte']
-            eq_columns.extend([f'score_eq_{dim}' for dim in ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]])
-            eq_columns.append('score_eq_vas')
+            # Extraire et formater les colonnes pertinentes pour OHS
+            ohs_columns = ['date_collecte', 'periode', 'reference_professional', 'reference_date', 'score_total']
+            ohs_columns.extend([f'score_q{i}' for i in range(1, 13)])
             
             # Vérifier quelles colonnes sont présentes
-            available_columns = [col for col in eq_columns if col in patient_data.columns]
+            available_ohs_columns = [col for col in ohs_columns if col in patient_data.columns]
             
-            if len(available_columns) > 1:  # Au moins 'date_collecte' et une autre colonne
-                display_df = patient_data[available_columns].copy()
+            if len(available_ohs_columns) > 1:  # Au moins 'date_collecte' et une autre colonne
+                display_df = patient_data[available_ohs_columns].copy()
                 
                 # Renommer les colonnes pour meilleure lisibilité
                 rename_map = {
                     'date_collecte': 'Date de collecte',
+                    'periode': 'Période',
+                    'reference_professional': 'Professionnel référent',
+                    'reference_date': 'Date de référence',
+                    'score_total': 'Score total'
+                }
+                rename_map.update({f'score_q{i}': f'Q{i}' for i in range(1, 13)})
+                display_df = display_df.rename(columns=rename_map)
+                
+                # Colorer les lignes selon la période
+                def color_period(val):
+                    if val == 'pre':
+                        return 'background-color: #ffcccc'  # Rouge clair pour pré-opératoire
+                    else:
+                        return 'background-color: #ccffcc'  # Vert clair pour post-opératoire
+                
+                styled_df = display_df.style.applymap(color_period, subset=['Période'])
+                st.dataframe(styled_df, use_container_width=True)
+            else:
+                st.info("Aucune donnée détaillée OHS n'est disponible pour ce patient.")
+            
+            # Affichage des questions OHS (collapsible)
+            with st.expander("Voir les questions du questionnaire OHS"):
+                st.subheader("Questions du questionnaire OHS:")
+                for q_num, question in OHS_QUESTIONS.items():
+                    st.write(f"**Q{q_num}:** {question}")
+            
+        elif questionnaire_type == "EQ-5D":
+            st.subheader(f"Scores {questionnaire_type} du patient")
+            
+            # Extraire et formater les colonnes pertinentes pour EQ-5D
+            eq_columns = ['date_collecte', 'periode', 'reference_professional', 'reference_date']
+            eq_columns.extend([f'score_eq_{dim}' for dim in ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]])
+            eq_columns.append('score_eq_vas')
+            
+            # Vérifier quelles colonnes sont présentes
+            available_eq_columns = [col for col in eq_columns if col in patient_data.columns]
+            
+            if len(available_eq_columns) > 1:  # Au moins 'date_collecte' et une autre colonne
+                display_df = patient_data[available_eq_columns].copy()
+                
+                # Renommer les colonnes pour meilleure lisibilité
+                rename_map = {
+                    'date_collecte': 'Date de collecte',
+                    'periode': 'Période',
+                    'reference_professional': 'Professionnel référent',
+                    'reference_date': 'Date de référence',
                     'score_eq_mobility': 'Mobilité',
                     'score_eq_self_care': 'Autonomie',
                     'score_eq_usual_activities': 'Activités courantes',
@@ -597,10 +743,18 @@ if selected_patient:
                 }
                 
                 # Appliquer uniquement les renommages pour les colonnes disponibles
-                rename_cols = {k: v for k, v in rename_map.items() if k in available_columns}
+                rename_cols = {k: v for k, v in rename_map.items() if k in available_eq_columns}
                 display_df = display_df.rename(columns=rename_cols)
                 
-                st.dataframe(display_df, use_container_width=True)
+                # Colorer les lignes selon la période
+                def color_period(val):
+                    if val == 'pre':
+                        return 'background-color: #ffcccc'  # Rouge clair pour pré-opératoire
+                    else:
+                        return 'background-color: #ccffcc'  # Vert clair pour post-opératoire
+                
+                styled_df = display_df.style.applymap(color_period, subset=['Période'])
+                st.dataframe(styled_df, use_container_width=True)
             else:
                 st.info("Aucune donnée détaillée EQ-5D n'est disponible pour ce patient.")
             
@@ -613,13 +767,13 @@ if selected_patient:
                 st.markdown("""
                 **Échelle visuelle analogique (EVA):** Sur une échelle de 0 à 100, où 0 représente le pire état de santé imaginable et 100 le meilleur état de santé imaginable, comment évaluez-vous votre état de santé aujourd'hui?
                 """)
-        
+            
         elif questionnaire_type == "Cochlear Implant":
             st.subheader(f"Scores {questionnaire_type} du patient")
             
             # Extraire et formater les colonnes pertinentes pour le questionnaire sur les implants cochléaires
-            cochlear_implant_columns = ['date_collecte']
-            cochlear_implant_columns.extend([f'score_{q}' for q in range(1, 13)])
+            cochlear_implant_columns = ['date_collecte', 'periode', 'reference_professional', 'reference_date']
+            cochlear_implant_columns.extend([f'score_{q}' for q in COCHLEAR_IMPLANT_QUESTIONS.keys()])
             
             # Vérifier quelles colonnes sont présentes
             available_cochlear_implant_columns = [col for col in cochlear_implant_columns if col in patient_data.columns]
@@ -629,12 +783,23 @@ if selected_patient:
                 
                 # Renommer les colonnes pour meilleure lisibilité
                 rename_map = {
-                    'date_collecte': 'Date de collecte'
+                    'date_collecte': 'Date de collecte',
+                    'periode': 'Période',
+                    'reference_professional': 'Professionnel référent',
+                    'reference_date': 'Date de référence'
                 }
-                rename_map.update({f'score_{q}': f'Q{q}' for q in range(1, 13)})
+                rename_map.update({f'score_{q}': f'Q{q}' for q in COCHLEAR_IMPLANT_QUESTIONS.keys()})
                 display_df = display_df.rename(columns=rename_map)
                 
-                st.dataframe(display_df, use_container_width=True)
+                # Colorer les lignes selon la période
+                def color_period(val):
+                    if val == 'pre':
+                        return 'background-color: #ffcccc'  # Rouge clair pour pré-opératoire
+                    else:
+                        return 'background-color: #ccffcc'  # Vert clair pour post-opératoire
+                
+                styled_df = display_df.style.applymap(color_period, subset=['Période'])
+                st.dataframe(styled_df, use_container_width=True)
             else:
                 st.info("Aucune donnée détaillée pour le questionnaire sur les implants cochléaires n'est disponible pour ce patient.")
             
