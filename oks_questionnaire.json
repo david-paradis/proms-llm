@@ -1,0 +1,180 @@
+{
+    "questionnaire": "Score de genou Oxford (OKS)",
+    "description": "Questionnaire d'évaluation fonctionnelle du genou sur les 4 dernières semaines",
+    "license": "OKS",
+    "questions": [
+      {
+        "id": "115515",
+        "calculation_variable_name": "question1",
+        "used_in": ["total", "douleur"],
+        "text": "Au cours des 4 dernières semaines, comment décririez-vous la douleur au genou que vous ressentez habituellement?",
+        "choices": [
+          { "value": 4, "text": "Aucune" },
+          { "value": 3, "text": "Très légère" },
+          { "value": 2, "text": "Légère" },
+          { "value": 1, "text": "Modérée" },
+          { "value": 0, "text": "Sévère" }
+        ]
+      },
+      {
+        "id": "115516",
+        "calculation_variable_name": "question2",
+        "used_in": ["fonction", "total"],
+        "text": "Au cours des 4 dernières semaines, avez-vous eu de la difficulté à vous laver et vous sécher (entièrement) à cause de votre genou?",
+        "choices": [
+          { "value": 4, "text": "Aucune difficulté" },
+          { "value": 3, "text": "Très peu de difficulté" },
+          { "value": 2, "text": "Difficulté modérée" },
+          { "value": 1, "text": "Difficulté extrême" },
+          { "value": 0, "text": "Impossible à faire" }
+        ]
+      },
+      {
+        "id": "115517",
+        "calculation_variable_name": "question3",
+        "used_in": ["fonction", "total"],
+        "text": "Au cours des 4 dernières semaines, avez-vous eu de la difficulté à monter à bord et sortir d'une voiture ou à utiliser les transports en commun à cause de votre genou (peu importe le mode de transport que vous utilisez habituellement)?",
+        "choices": [
+          { "value": 4, "text": "Aucune difficulté" },
+          { "value": 3, "text": "Très peu de difficulté" },
+          { "value": 2, "text": "Difficulté modérée" },
+          { "value": 1, "text": "Difficulté extrême" },
+          { "value": 0, "text": "Impossible à faire" }
+        ]
+      },
+      {
+        "id": "115518",
+        "calculation_variable_name": "question4",
+        "used_in": ["fonction", "total"],
+        "text": "Au cours des 4 dernières semaines, pendant combien de temps avez-vous pu marcher (avec ou sans canne) avant que votre douleur au genou devienne grave?",
+        "choices": [
+          { "value": 4, "text": "Plus de 30 minutes" },
+          { "value": 3, "text": "16 à 30 minutes" },
+          { "value": 2, "text": "5 à 15 minutes" },
+          { "value": 1, "text": "Autour de la maison seulement" },
+          { "value": 0, "text": "Pas du tout - douleur sévère au repos" }
+        ]
+      },
+      {
+        "id": "115519",
+        "calculation_variable_name": "question5",
+        "used_in": ["fonction", "total"],
+        "text": "Au cours des 4 dernières semaines, après un repas (assis à table), à quel point a-t-il été douloureux de vous lever de votre chaise à cause de votre genou?",
+        "choices": [
+          { "value": 0, "text": "Pas du tout douloureux" },
+          { "value": 1, "text": "Légèrement douloureux" },
+          { "value": 2, "text": "Modérément douloureux" },
+          { "value": 3, "text": "Très douloureux" },
+          { "value": 4, "text": "Insupportable" }
+        ]
+      },
+      {
+        "id": "115520",
+        "calculation_variable_name": "question6",
+        "used_in": ["fonction", "total"],
+        "text": "Au cours des 4 dernières semaines, avez-vous boité en marchant à cause de votre genou?",
+        "choices": [
+          { "value": 0, "text": "Rarement/jamais" },
+          { "value": 1, "text": "Parfois ou juste au début" },
+          { "value": 2, "text": "Souvent, pas juste au début" },
+          { "value": 3, "text": "La plupart du temps" },
+          { "value": 4, "text": "Tout le temps" }
+        ]
+      },
+      {
+        "id": "115521",
+        "calculation_variable_name": "question7",
+        "used_in": ["fonction", "total"],
+        "text": "Au cours des 4 dernières semaines, auriez-vous pu vous agenouiller et vous relever immédiatement après?",
+        "choices": [
+          { "value": 0, "text": "Oui, facilement" },
+          { "value": 1, "text": "Avec peu de difficulté" },
+          { "value": 2, "text": "Avec difficulté modérée" },
+          { "value": 3, "text": "Avec difficulté extrême" },
+          { "value": 4, "text": "Non, impossible" }
+        ]
+      },
+      {
+        "id": "115522",
+        "calculation_variable_name": "question8",
+        "used_in": ["total", "douleur"],
+        "text": "Au cours des 4 dernières semaines, votre douleur au genou vous a-t-elle dérangé(e) au lit pendant la nuit?",
+        "choices": [
+          { "value": 0, "text": "Pas du tout" },
+          { "value": 1, "text": "1 ou 2 nuits" },
+          { "value": 2, "text": "Quelques nuits" },
+          { "value": 3, "text": "La plupart des nuits" },
+          { "value": 4, "text": "Toutes les nuits" }
+        ]
+      },
+      {
+        "id": "115523",
+        "calculation_variable_name": "question9",
+        "used_in": ["total", "douleur"],
+        "text": "Au cours des 4 dernières semaines, à quel point votre douleur au genou a-t-elle perturbé vos tâches quotidiennes (et ménagères)?",
+        "choices": [
+          { "value": 0, "text": "Pas du tout" },
+          { "value": 1, "text": "Légèrement" },
+          { "value": 2, "text": "Modérément" },
+          { "value": 3, "text": "Grandement" },
+          { "value": 4, "text": "Totalement" }
+        ]
+      },
+      {
+        "id": "115524",
+        "calculation_variable_name": "question10",
+        "used_in": ["total", "douleur"],
+        "text": "Au cours des 4 dernières semaines, avez-vous eu la sensation que votre genou pouvait soudainement « lâcher » ou vous faire tomber?",
+        "choices": [
+          { "value": 0, "text": "Rarement/jamais" },
+          { "value": 1, "text": "Parfois ou juste au début" },
+          { "value": 2, "text": "Souvent, pas juste au début" },
+          { "value": 3, "text": "La plupart du temps" },
+          { "value": 4, "text": "Tout le temps" }
+        ]
+      },
+      {
+        "id": "115525",
+        "calculation_variable_name": "question11",
+        "used_in": ["total", "douleur"],
+        "text": "Au cours des 4 dernières semaines, auriez-vous pu faire les courses du ménage/l'épicerie de façon autonome?",
+        "choices": [
+          { "value": 0, "text": "Oui, facilement" },
+          { "value": 1, "text": "Avec peu de difficulté" },
+          { "value": 2, "text": "Avec difficulté modérée" },
+          { "value": 3, "text": "Avec difficulté extrême" },
+          { "value": 4, "text": "Non, impossible" }
+        ]
+      },
+      {
+        "id": "115526",
+        "calculation_variable_name": "question12",
+        "used_in": ["total", "douleur"],
+        "text": "Au cours des 4 dernières semaines, auriez-vous pu descendre un escalier?",
+        "choices": [
+          { "value": 0, "text": "Oui, facilement" },
+          { "value": 1, "text": "Avec peu de difficulté" },
+          { "value": 2, "text": "Avec difficulté modérée" },
+          { "value": 3, "text": "Avec difficulté extrême" },
+          { "value": 4, "text": "Non, impossible" }
+        ]
+      }
+    ],
+    "formulas": [
+      {
+        "nom": "Douleur",
+        "description": "Évalue les aspects liés à la douleur du genou",      
+        "equation": "(100/24)*(question1+question8+question9+question10+question11+question12)"
+      },
+      {
+        "nom": "Fonction", 
+        "description": "Évalue les aspects fonctionnels et les activités de la vie quotidienne",
+        "equation": "(100/24)*(question2+question3+question4+question5+question6+question7)"
+      },
+      {
+         "nom": "Total",
+         "description": "Score total du questionnaire",
+         "equation": "question1+question2+question3+question4+question5+question6+question7+question8+question9+question10+question11+question12"
+      }
+    ]
+}

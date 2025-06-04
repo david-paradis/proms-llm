@@ -3,24 +3,11 @@ import numpy as np
 import random
 from datetime import datetime, timedelta
 import csv
-
-# EQ-5D Dimensions
-EQ5D_DIMENSIONS = ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]
-
-# Catégories de questions pour le questionnaire sur les implants cochléaires
-COCHLEAR_IMPLANT_CATEGORIES = {
-    "practice": ["practice_1", "practice_2"],
-    "noisy": ["noisy_1", "noisy_2", "noisy_3", "noisy_4"],
-    "academic": ["academic_1", "academic_2", "academic_3", "academic_4", "academic_5"],
-    "oral": ["oral_1", "oral_2", "oral_3"],
-    "fatigue": ["fatigue_1", "fatigue_2"],
-    "social": ["social_1", "social_2", "social_3", "social_4"],
-    "emotional": ["emotional_1", "emotional_2", "emotional_3", "emotional_4"]
-}
+from constants import EQ5D_DIMENSIONS, COCHLEAR_IMPLANT_CATEGORIES, REFERENCE_PROFESSIONALS
 
 def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_path="patients_proms.csv"):
     """
-    Génère des données synthétiques pour les scores OHS, EQ-5D et le questionnaire sur les implants cochléaires.
+    Génère des données synthétiques pour les scores OKS, EQ-5D et le questionnaire sur les implants cochléaires.
     Chaque entrée correspond à un type de questionnaire.
     
     Parameters:
@@ -32,12 +19,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
     data = []
     patients_info = {}  # Pour stocker les informations des patients
     
-    # Dictionnaire des professionnels de référence par type de questionnaire
-    REFERENCE_PROFESSIONALS = {
-        "OHS": ["Physiothérapeute", "Kinésithérapeute", "Ergothérapeute"],
-        "EQ-5D": ["Psychologue", "Travailleur social", "Infirmier spécialisé"],
-        "Cochlear Implant": ["Audiologiste", "Orthophoniste", "Psychologue spécialisé"]
-    }
+
     
     # Création d'IDs de patients (ex: P001, P002, etc.)
     patient_ids = [f"P{str(i+1).zfill(3)}" for i in range(num_patients)]
@@ -57,13 +39,13 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
         
         # Premier score (baseline)
         if evolution_pattern == "improvement":
-            initial_ohs_score = random.randint(10, 25)  # Score bas (symptômes modérés à sévères)
+            initial_oks_score = random.randint(10, 25)  # Score bas (symptômes modérés à sévères)
             initial_cochlear_scores = {q: random.randint(3, 4) for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category}
         elif evolution_pattern == "deterioration":
-            initial_ohs_score = random.randint(30, 45)  # Score élevé (bon état initial)
+            initial_oks_score = random.randint(30, 45)  # Score élevé (bon état initial)
             initial_cochlear_scores = {q: random.randint(1, 2) for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category}
         else:
-            initial_ohs_score = random.randint(15, 35)  # Score variable
+            initial_oks_score = random.randint(15, 35)  # Score variable
             initial_cochlear_scores = {q: random.randint(2, 3) for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category}
         
         # Génération des entrées pour ce patient
@@ -74,7 +56,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
         
         # Générer des dates de référence pour chaque type de questionnaire
         reference_dates = {}
-        for q_type in ["OHS", "EQ-5D", "Cochlear Implant"]:
+        for q_type in ["OKS", "EQ-5D", "Cochlear Implant"]:
             if random.random() < 0.7:  # 70% de chance d'avoir une référence
                 # Choisir une date aléatoire entre la première et la dernière collecte
                 ref_date = random.choice(dates) + timedelta(days=random.randint(1, 30))
@@ -83,7 +65,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
                     "professional": random.choice(REFERENCE_PROFESSIONALS[q_type])
                 }
         
-        current_ohs_score = initial_ohs_score
+        current_oks_score = initial_oks_score
         current_cochlear_scores = initial_cochlear_scores.copy()
         
         # Initial state for EQ-5D (dimension score 1 = good, vas 100 = good)
@@ -99,7 +81,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
         current_eq_vas = initial_eq_vas
 
         for i, date in enumerate(dates):
-            q_type = random.choice(["OHS", "EQ-5D", "Cochlear Implant"])
+            q_type = random.choice(["OKS", "EQ-5D", "Cochlear Implant"])
             entry = {
                 "patient_id": patient_id,
                 "date_collecte": date.strftime("%Y-%m-%d"),
@@ -117,8 +99,8 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
                     entry["reference_professional"] = ref_info["professional"]
                     entry["reference_date"] = ref_info["date"].strftime("%Y-%m-%d")
 
-            if q_type == "OHS":
-                # --- OHS Score Generation ---
+            if q_type == "OKS":
+                # --- OKS Score Generation ---
                 is_post_op = date >= operation_date
                 
                 # Si c'est une référence à un physiothérapeute, augmenter la probabilité d'amélioration
@@ -146,12 +128,12 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
                         else:
                             change = random.randint(-2, 2)
                 
-                current_ohs_score = max(0, min(48, current_ohs_score + change))
-                entry["score_total"] = current_ohs_score
+                current_oks_score = max(0, min(48, current_oks_score + change))
+                entry["score_total"] = current_oks_score
 
                 # Distribute total score among 12 questions (0-4)
                 question_scores = []
-                remaining_score = current_ohs_score
+                remaining_score = current_oks_score
                 for q in range(1, 12):
                     if remaining_score <= 0:
                         q_score = 0
@@ -169,7 +151,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
                 for q_idx, q_score in enumerate(question_scores, 1):
                     entry[f"score_q{q_idx}"] = q_score
                 
-                # Also update EQ-5D state based on OHS change
+                # Also update EQ-5D state based on OKS change
                 eq_dim_change_tendency = -1 if change > 2 else (1 if change < -2 else 0)
                 eq_vas_change_tendency = change 
                 for dim in EQ5D_DIMENSIONS:
@@ -231,13 +213,13 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
                 current_eq_vas = max(0, min(100, current_eq_vas + vas_change))
                 entry["score_eq_vas"] = current_eq_vas
                 
-                # Update OHS state based on EQ-5D change
+                # Update OKS state based on EQ-5D change
                 avg_dim_change = sum(current_eq_dims[d] - initial_eq_dims[d] for d in EQ5D_DIMENSIONS) / 5.0
-                ohs_change_from_dims = -int(avg_dim_change * 3)
-                ohs_change_from_vas = int((current_eq_vas - initial_eq_vas) * 0.2)
+                oks_change_from_dims = -int(avg_dim_change * 3)
+                oks_change_from_vas = int((current_eq_vas - initial_eq_vas) * 0.2)
                 
-                ohs_change = random.choice([ohs_change_from_dims, ohs_change_from_vas]) + random.randint(-5, 5)
-                current_ohs_score = max(0, min(48, current_ohs_score + ohs_change))
+                oks_change = random.choice([oks_change_from_dims, oks_change_from_vas]) + random.randint(-5, 5)
+                current_oks_score = max(0, min(48, current_oks_score + oks_change))
                 initial_eq_dims = current_eq_dims.copy()
                 initial_eq_vas = current_eq_vas
 
@@ -308,11 +290,11 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
     df = pd.DataFrame(data)
     
     # Define columns order - ensure all possible score columns are included
-    ohs_q_cols = [f"score_q{i}" for i in range(1, 13)]
+    oks_q_cols = [f"score_q{i}" for i in range(1, 13)]
     eq_dim_cols = [f"score_eq_{dim}" for dim in EQ5D_DIMENSIONS]
     cochlear_cols = [f"score_{q}" for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category]
     cols = ["patient_id", "date_collecte", "date_operation", "periode", "questionnaire_type", 
-            "reference_professional", "reference_date", "score_total"] + ohs_q_cols + eq_dim_cols + ["score_eq_vas"] + cochlear_cols
+            "reference_professional", "reference_date", "score_total"] + oks_q_cols + eq_dim_cols + ["score_eq_vas"] + cochlear_cols
     
     # Add missing columns with NaN
     for col in cols:
@@ -327,7 +309,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
     patients_df = pd.DataFrame.from_dict(patients_info, orient='index')
     patients_df.to_csv("patients_info.csv", index=True, index_label="patient_id")
     
-    print(f"Données synthétiques (OHS, EQ-5D & Cochlear Implant) générées et sauvegardées dans {file_path}")
+    print(f"Données synthétiques (OKS, EQ-5D & Cochlear Implant) générées et sauvegardées dans {file_path}")
     print(f"Informations des patients sauvegardées dans patients_info.csv")
     return df
 
