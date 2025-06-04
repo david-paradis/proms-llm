@@ -139,7 +139,7 @@ def get_patient_data(df, patient_id, questionnaire_type=None):
     patient_data = patient_data.sort_values('date_collecte')
     return patient_data
 
-def construct_structured_prompt(patient_data, interpretation_guide, questionnaire_type):
+def construct_structured_prompt(patient_data, interpretation_guide, questionnaire_type, prompt_format="Texte simple"):
     """Construit un prompt pour générer une analyse structurée en JSON"""
     # Extraire les informations du patient
     patient_id = patient_data['patient_id'].iloc[0]
@@ -155,77 +155,114 @@ def construct_structured_prompt(patient_data, interpretation_guide, questionnair
 
     config = QUESTIONNAIRE_CONFIGS.get(questionnaire_type, {})
     
+    # Préparer les informations du questionnaire
+    questionnaire_info = ""
+    if questionnaire_type == "OKS":
+        questionnaire_info = """## Structure du Questionnaire OKS
+
+Chaque question est identifiée par un ID unique et a des choix de réponse spécifiques :
+
+"""
+        for q in config["questions"]:
+            questionnaire_info += f"""Question {q["calculation_variable_name"].replace("question", "")} (ID: {q["id"]}):
+{q["text"]}
+Choix possibles:
+{chr(10).join(f"- {choice['value']}: {choice['text']}" for choice in q["choices"])}
+
+"""
+    
     # Formatage des données selon le type de questionnaire
-    detailed_scores_text = []
-    for _, row in patient_data.iterrows():
-        date = row['date_collecte'].strftime('%Y-%m-%d')
-        periode = "pré-opératoire" if row['periode'] == "pre" else "post-opératoire"
-        reference_info = ""
-        if pd.notna(row.get('reference_professional')):
-            reference_info = f" (Référence à {row['reference_professional']} le {row['reference_date']})"
+    if prompt_format == "JSON structuré":
+        detailed_scores = []
+        for _, row in patient_data.iterrows():
+            date = row['date_collecte'].strftime('%Y-%m-%d')
+            periode = "pré-opératoire" if row['periode'] == "pre" else "post-opératoire"
+            reference_info = ""
+            if pd.notna(row.get('reference_professional')):
+                reference_info = f" (Référence à {row['reference_professional']} le {row['reference_date']})"
+            
+            if questionnaire_type == "OKS":
+                # Créer une entrée de résultat au format JSON
+                result_entry = {
+                    "date": date,
+                    "type": periode,
+                    "calculated_scores": [],
+                    "results": []
+                }
+                
+                # Ajouter les scores calculés
+                for formula in config["formulas"]:
+                    formula_col = f'score_{formula["nom"].lower()}'
+                    if formula_col in row and not pd.isna(row[formula_col]):
+                        score_value = float(row[formula_col])
+                        result_entry["calculated_scores"].append({
+                            "name": formula["nom"].lower(),
+                            "score": score_value,
+                            "minimum": 0,
+                            "maximum": 100 if formula["nom"] in ["Douleur", "Fonction"] else 48
+                        })
+                
+                # Ajouter les scores détaillés pour chaque question
+                for q in config["questions"]:
+                    q_num = q["calculation_variable_name"].replace("question", "")
+                    q_col = f'score_q{q_num}'
+                    if q_col in row and not pd.isna(row[q_col]):
+                        score_value = float(row[q_col])
+                        # Trouver le choix correspondant au score
+                        choice_text = next((choice["text"] for choice in q["choices"] 
+                                         if choice["value"] == score_value), "Non spécifié")
+                        
+                        result_entry["results"].append({
+                            "question_id": q["id"],
+                            "question_number": int(q_num),
+                            "question_text": q["text"],
+                            "choice": choice_text,
+                            "value": score_value
+                        })
+                
+                detailed_scores.append(result_entry)
+                
+            elif questionnaire_type == "EQ-5D":
+                # Format JSON pour EQ-5D
+                result_entry = {
+                    "date": date,
+                    "type": periode,
+                    "dimensions": {},
+                    "vas": None
+                }
+                
+                for dim in ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]:
+                    dim_col = f'score_eq_{dim}'
+                    if dim_col in row and not pd.isna(row[dim_col]):
+                        result_entry["dimensions"][dim] = float(row[dim_col])
+                
+                if 'score_eq_vas' in row and not pd.isna(row['score_eq_vas']):
+                    result_entry["vas"] = float(row['score_eq_vas'])
+                
+                detailed_scores.append(result_entry)
+                
+            elif questionnaire_type == "Cochlear Implant":
+                # Format JSON pour Cochlear Implant
+                result_entry = {
+                    "date": date,
+                    "type": periode,
+                    "categories": {}
+                }
+                
+                for category, questions in config["domains"].items():
+                    if isinstance(questions, list):
+                        category_scores = {}
+                        for q in questions:
+                            q_col = f'score_{q}'
+                            if q_col in row and not pd.isna(row[q_col]):
+                                category_scores[q] = float(row[q_col])
+                        if category_scores:
+                            result_entry["categories"][category] = category_scores
+                
+                detailed_scores.append(result_entry)
         
-        if questionnaire_type == "OKS":
-            # Collecter les scores calculés
-            calculated_scores = []
-            for formula in config["formulas"]:
-                formula_col = f'score_{formula["nom"].lower()}'
-                if formula_col in row and not pd.isna(row[formula_col]):
-                    score_value = float(row[formula_col])
-                    if formula["nom"] == "Total":
-                        calculated_scores.append(f"Score Total: {score_value:.1f}/48")
-                    elif formula["nom"] == "Douleur":
-                        calculated_scores.append(f"Score Douleur: {score_value:.1f}/100")
-                    elif formula["nom"] == "Fonction":
-                        calculated_scores.append(f"Score Fonction: {score_value:.1f}/100")
-            
-            # Collecter les scores détaillés
-            question_scores = []
-            for q in config["questions"]:
-                q_num = q["calculation_variable_name"].replace("question", "")  # Extraire le numéro de la variable de calcul
-                q_col = f'score_q{q_num}'
-                if q_col in row and not pd.isna(row[q_col]):
-                    score_value = float(row[q_col])
-                    # Trouver le choix correspondant au score
-                    choice_text = next((choice["text"] for choice in q["choices"] 
-                                     if choice["value"] == score_value), "Non spécifié")
-                    question_scores.append(f"Question {q_num}: {score_value:.1f}/4 - {choice_text}")
-            
-            # Créer le texte formaté pour cette collecte
-            collecte_text = f"""Date: {date} ({periode}){reference_info}
-{', '.join(calculated_scores)}
-
-Scores détaillés par question:
-{chr(10).join(f"- {score}" for score in question_scores)}"""
-            
-            detailed_scores_text.append(collecte_text)
-            
-        elif questionnaire_type == "EQ-5D":
-            # Format existant pour EQ-5D
-            scores = []
-            for dim in ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]:
-                dim_col = f'score_eq_{dim}'
-                if dim_col in row and not pd.isna(row[dim_col]):
-                    scores.append(f"{dim}: {row[dim_col]}/5")
-            if 'score_eq_vas' in row and not pd.isna(row['score_eq_vas']):
-                scores.append(f"EVA: {row['score_eq_vas']}/100")
-            detailed_scores_text.append(f"Date: {date} ({periode}){reference_info}\n" + ", ".join(scores))
-            
-        elif questionnaire_type == "Cochlear Implant":
-            # Format existant pour Cochlear Implant
-            scores = []
-            for category, questions in config["domains"].items():
-                if isinstance(questions, list):
-                    category_scores = []
-                    for q in questions:
-                        q_col = f'score_{q}'
-                        if q_col in row and not pd.isna(row[q_col]):
-                            category_scores.append(f"{q}: {row[q_col]}/4")
-                    if category_scores:
-                        scores.append(f"{category}: {', '.join(category_scores)}")
-            detailed_scores_text.append(f"Date: {date} ({periode}){reference_info}\n" + "\n".join(scores))
-
-    # Construction du prompt avec la nouvelle structure
-    prompt = f"""## Instructions Système
+        # Construction du prompt avec la structure JSON
+        prompt = f"""## Instructions Système
 
 Tu es un assistant médical spécialisé dans l'analyse comparative de questionnaires PROMs. Tu reçois des données structurées et dois retourner une analyse clinique concise sous format JSON standardisé.
 
@@ -234,6 +271,8 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
 - **Échelle :** {config.get('scale', '')}
 - **MCID :** Différence cliniquement significative = {config.get('mcid', '')}
 - **Domaines fonctionnels :** {', '.join(config.get('domains', {}).keys())}
+
+{questionnaire_info}
 
 ## Directives d'Interprétation Clinique
 
@@ -313,6 +352,7 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
 - **Pour les améliorations** : Indiquer la progression
 - **Pour les stables problématiques** : Préciser le score maintenu et sa persistance
 - **Contextualiser temporellement** quand pertinent (dates, références externes)
+- **Utiliser le texte des questions** pour donner du contexte aux analyses
 
 ## Instructions de Traitement
 
@@ -324,6 +364,190 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
 6. **Prioriser** les éléments par importance clinique
 7. **Utiliser une terminologie médicale précise** mais accessible
 8. **Maintenir la neutralité clinique** - observer et décrire les patterns, ne pas diagnostiquer
+9. **Référencer le texte des questions** dans les analyses pour donner du contexte
+
+## Données du Patient {patient_id}
+
+{json.dumps({"results": detailed_scores}, indent=2, ensure_ascii=False)}
+
+{references_text}
+
+IMPORTANT: Ta réponse doit être un JSON valide et uniquement du JSON, sans autre texte.
+"""
+    else:
+        # Format texte simple (code existant)
+        detailed_scores_text = []
+        for _, row in patient_data.iterrows():
+            date = row['date_collecte'].strftime('%Y-%m-%d')
+            periode = "pré-opératoire" if row['periode'] == "pre" else "post-opératoire"
+            reference_info = ""
+            if pd.notna(row.get('reference_professional')):
+                reference_info = f" (Référence à {row['reference_professional']} le {row['reference_date']})"
+            
+            if questionnaire_type == "OKS":
+                # Collecter les scores calculés
+                calculated_scores = []
+                for formula in config["formulas"]:
+                    formula_col = f'score_{formula["nom"].lower()}'
+                    if formula_col in row and not pd.isna(row[formula_col]):
+                        score_value = float(row[formula_col])
+                        if formula["nom"] == "Total":
+                            calculated_scores.append(f"Score Total: {score_value:.1f}/48")
+                        elif formula["nom"] == "Douleur":
+                            calculated_scores.append(f"Score Douleur: {score_value:.1f}/100")
+                        elif formula["nom"] == "Fonction":
+                            calculated_scores.append(f"Score Fonction: {score_value:.1f}/100")
+                
+                # Collecter les scores détaillés
+                question_scores = []
+                for q in config["questions"]:
+                    q_num = q["calculation_variable_name"].replace("question", "")
+                    q_col = f'score_q{q_num}'
+                    if q_col in row and not pd.isna(row[q_col]):
+                        score_value = float(row[q_col])
+                        # Trouver le choix correspondant au score
+                        choice_text = next((choice["text"] for choice in q["choices"] 
+                                         if choice["value"] == score_value), "Non spécifié")
+                        question_scores.append(f"Question {q_num} (ID: {q['id']}): {score_value:.1f}/4 - {choice_text}\n   {q['text']}")
+                
+                # Créer le texte formaté pour cette collecte
+                collecte_text = f"""Date: {date} ({periode}){reference_info}
+{', '.join(calculated_scores)}
+
+Scores détaillés par question:
+{chr(10).join(f"- {score}" for score in question_scores)}"""
+                
+                detailed_scores_text.append(collecte_text)
+                
+            elif questionnaire_type == "EQ-5D":
+                # Format existant pour EQ-5D
+                scores = []
+                for dim in ["mobility", "self_care", "usual_activities", "pain_discomfort", "anxiety_depression"]:
+                    dim_col = f'score_eq_{dim}'
+                    if dim_col in row and not pd.isna(row[dim_col]):
+                        scores.append(f"{dim}: {row[dim_col]}/5")
+                if 'score_eq_vas' in row and not pd.isna(row['score_eq_vas']):
+                    scores.append(f"EVA: {row['score_eq_vas']}/100")
+                detailed_scores_text.append(f"Date: {date} ({periode}){reference_info}\n" + ", ".join(scores))
+                
+            elif questionnaire_type == "Cochlear Implant":
+                # Format existant pour Cochlear Implant
+                scores = []
+                for category, questions in config["domains"].items():
+                    if isinstance(questions, list):
+                        category_scores = []
+                        for q in questions:
+                            q_col = f'score_{q}'
+                            if q_col in row and not pd.isna(row[q_col]):
+                                category_scores.append(f"{q}: {row[q_col]}/4")
+                        if category_scores:
+                            scores.append(f"{category}: {', '.join(category_scores)}")
+                detailed_scores_text.append(f"Date: {date} ({periode}){reference_info}\n" + "\n".join(scores))
+        
+        # Construction du prompt avec le format texte simple
+        prompt = f"""## Instructions Système
+
+Tu es un assistant médical spécialisé dans l'analyse comparative de questionnaires PROMs. Tu reçois des données structurées et dois retourner une analyse clinique concise sous format JSON standardisé.
+
+## Contexte Clinique {questionnaire_type}
+
+- **Échelle :** {config.get('scale', '')}
+- **MCID :** Différence cliniquement significative = {config.get('mcid', '')}
+- **Domaines fonctionnels :** {', '.join(config.get('domains', {}).keys())}
+
+{questionnaire_info}
+
+## Directives d'Interprétation Clinique
+
+{config.get('interpretation_guide', '')}
+
+## Logique d'Analyse
+
+### Critères de Classification
+
+1. **Détérioration Notable :** Baisse ≥2 points entre collectes OU score final < score initial avec baisse ≥1 point
+2. **Amélioration Notable :** Hausse ≥2 points entre collectes OU amélioration soutenue ≥1 point
+3. **Stable Problématique :** Score ≤1/4 maintenu sur ≥2 collectes consécutives
+4. **Fluctuation :** Variations importantes (≥2 points) sans tendance claire
+
+### Contexte Opératoire et Temporel
+
+- **Identifier automatiquement** si collecte est pré-opératoire ou post-opératoire basé sur :
+    - Date d'opération fournie vs date de collecte
+    - Indicateurs "preop"/"postop" dans les métadonnées de collecte
+- **Terminologie temporelle** à utiliser dans les descriptions :
+    - "pré-op" pour les collectes avant l'opération
+    - "post-opératoire" pour le contexte général après l'opération
+
+### Règles de Priorisation
+
+- Prioriser les détériorations post-opératoires (particulièrement préoccupantes)
+- Distinguer les améliorations post-opératoires attendues vs les rechutes
+- Analyser les patterns : amélioration initiale puis rechute, détérioration progressive, etc.
+- Considérer l'impact des références externes sur la chronologie
+
+## Format de Sortie Requis
+
+```json
+{{
+  "patient_analysis": {{
+    "executive_summary": {{
+      "overall_trend": "improvement|deterioration|stable|fluctuating",
+      "key_concern": "Description concise du principal enjeu clinique",
+      "current_score": "{config.get('score_format', '')}",
+      "score_category": "severe|moderate|mild|satisfactory"
+    }},
+    "notable_deteriorations": {{
+      "items": [
+        {{
+          "id": "questionX",
+          "name": "Résumé de la question",
+          "description": "Évolution détaillée avec scores explicites et contexte temporel"
+        }}
+      ]
+    }},
+    "stable_problematic_areas": {{
+      "items": [
+        {{
+          "id": "questionX",
+          "name": "Résumé de la question",
+          "description": "Score persistant avec valeurs explicites et impact fonctionnel"
+        }}
+      ]
+    }},
+    "notable_improvements": {{
+      "items": [
+        {{
+          "id": "questionX",
+          "name": "Résumé de la question",
+          "description": "Progression positive avec scores explicites"
+        }}
+      ]
+    }}
+  }}
+}}
+```
+
+### Instructions pour les Descriptions
+
+- **Toujours inclure les scores numériques** dans chaque description
+- **Pour les détériorations** : Mentionner score initial → score final avec contexte temporel
+- **Pour les améliorations** : Indiquer la progression
+- **Pour les stables problématiques** : Préciser le score maintenu et sa persistance
+- **Contextualiser temporellement** quand pertinent (dates, références externes)
+- **Utiliser le texte des questions** pour donner du contexte aux analyses
+
+## Instructions de Traitement
+
+1. **Analyser chronologiquement** toutes les collectes pour identifier les tendances
+2. **Utiliser les scores calculés** fournis dans les données d'entrée pour identifier les domaines fonctionnels
+3. **Déterminer le contexte opératoire** de chaque collecte
+4. **Calculer les évolutions** par question et identifier les changements significatifs
+5. **Contextualiser temporellement** en utilisant la terminologie médicale standardisée
+6. **Prioriser** les éléments par importance clinique
+7. **Utiliser une terminologie médicale précise** mais accessible
+8. **Maintenir la neutralité clinique** - observer et décrire les patterns, ne pas diagnostiquer
+9. **Référencer le texte des questions** dans les analyses pour donner du contexte
 
 ## Données du Patient {patient_id}
 
@@ -333,6 +557,7 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
 
 IMPORTANT: Ta réponse doit être un JSON valide et uniquement du JSON, sans autre texte.
 """
+    
     return prompt
 
 def get_llm_response(prompt, provider="google", model=None):
@@ -462,6 +687,14 @@ questionnaire_type = st.sidebar.radio(
     index=0  # OKS par défaut
 )
 
+# Sélection du format de prompt
+prompt_format = st.sidebar.radio(
+    "Format du prompt",
+    options=["Texte simple", "JSON structuré"],
+    index=0,  # Texte simple par défaut
+    help="Choisissez le format dans lequel les données seront présentées au LLM"
+)
+
 # Information sur la génération de données synthétiques
 st.sidebar.markdown("---")
 if st.sidebar.button("Régénérer les données synthétiques"):
@@ -525,7 +758,9 @@ if selected_patient:
             
             # Extraire et formater les colonnes pertinentes pour OKS
             oks_columns = ['date_collecte', 'periode', 'reference_professional', 'reference_date']
-            oks_columns.extend([f'score_q{q["id"][-2:]}' for q in QUESTIONNAIRE_CONFIGS[questionnaire_type]["questions"]])  # Utiliser le bon format de nom de colonne
+            # Ajouter les colonnes de scores des questions
+            oks_columns.extend([f'score_q{q["calculation_variable_name"].replace("question", "")}' for q in QUESTIONNAIRE_CONFIGS[questionnaire_type]["questions"]])
+            # Ajouter les colonnes de scores calculés
             oks_columns.extend([f'score_{formula["nom"].lower()}' for formula in QUESTIONNAIRE_CONFIGS[questionnaire_type]["formulas"]])
             
             # Vérifier quelles colonnes sont présentes
@@ -541,8 +776,14 @@ if selected_patient:
                     'reference_professional': 'Professionnel référent',
                     'reference_date': 'Date de référence'
                 }
-                rename_map.update({f'score_q{q["id"][-2:]}': f'Q{q["id"][-2:]}' for q in QUESTIONNAIRE_CONFIGS[questionnaire_type]["questions"]})  # Utiliser le bon format de nom de colonne
-                rename_map.update({f'score_{formula["nom"].lower()}': f'{formula["nom"]}' for formula in QUESTIONNAIRE_CONFIGS[questionnaire_type]["formulas"]})
+                # Renommer les colonnes des questions
+                for q in QUESTIONNAIRE_CONFIGS[questionnaire_type]["questions"]:
+                    q_num = q["calculation_variable_name"].replace("question", "")
+                    rename_map[f'score_q{q_num}'] = f'Q{q_num}'
+                # Renommer les colonnes des scores calculés
+                for formula in QUESTIONNAIRE_CONFIGS[questionnaire_type]["formulas"]:
+                    rename_map[f'score_{formula["nom"].lower()}'] = formula["nom"]
+                
                 display_df = display_df.rename(columns=rename_map)
                 
                 # Colorer les lignes selon la période
@@ -561,17 +802,23 @@ if selected_patient:
                         # Afficher les scores calculés
                         st.write("**Scores calculés:**")
                         for formula in QUESTIONNAIRE_CONFIGS[questionnaire_type]["formulas"]:
-                            score_col = formula["nom"]
+                            score_col = formula["nom"]  # Utiliser le nom renommé
                             if score_col in row and not pd.isna(row[score_col]):
-                                st.write(f"- {score_col}: {row[score_col]:.1f}/{100 if formula['nom'] in ['Douleur', 'Fonction'] else 48}")
+                                max_score = 100 if formula["nom"] in ["Douleur", "Fonction"] else 48
+                                st.write(f"- {score_col}: {row[score_col]:.1f}/{max_score}")
                         
                         # Afficher les scores détaillés par question
                         st.write("\n**Scores détaillés par question:**")
                         for q in QUESTIONNAIRE_CONFIGS[questionnaire_type]["questions"]:
-                            q_num = q["id"][-2:]
-                            q_col = f'Q{q_num}'
+                            q_num = q["calculation_variable_name"].replace("question", "")
+                            q_col = f'Q{q_num}'  # Utiliser le nom renommé
                             if q_col in row and not pd.isna(row[q_col]):
-                                st.write(f"- {q_col}: {row[q_col]:.1f}/4 - {q['text']}")
+                                # Trouver le choix correspondant au score
+                                score_value = float(row[q_col])
+                                choice_text = next((choice["text"] for choice in q["choices"] 
+                                                 if choice["value"] == score_value), "Non spécifié")
+                                st.write(f"- Question {q_num} (ID: {q['id']}): {score_value:.1f}/4 - {choice_text}")
+                                st.write(f"  {q['text']}")
             else:
                 st.info("Aucune donnée détaillée OKS n'est disponible pour ce patient.")
             
@@ -687,7 +934,7 @@ if selected_patient:
         if st.button(analysis_button_text, type="primary"):
             with st.spinner("Analyse en cours..."):
                 # Construire le prompt structuré
-                structured_prompt = construct_structured_prompt(patient_data, "", questionnaire_type)
+                structured_prompt = construct_structured_prompt(patient_data, "", questionnaire_type, prompt_format)
                 
                 # Obtenir la réponse du LLM
                 structured_response = get_llm_response(structured_prompt, provider=llm_provider, model=llm_config[llm_provider]["model"])
