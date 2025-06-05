@@ -61,11 +61,11 @@
         "used_in": ["fonction", "total"],
         "text": "Au cours des 4 dernières semaines, après un repas (assis à table), à quel point a-t-il été douloureux de vous lever de votre chaise à cause de votre genou?",
         "choices": [
-          { "value": 0, "text": "Pas du tout douloureux" },
-          { "value": 1, "text": "Légèrement douloureux" },
+          { "value": 4, "text": "Pas du tout douloureux" },
+          { "value": 3, "text": "Légèrement douloureux" },
           { "value": 2, "text": "Modérément douloureux" },
-          { "value": 3, "text": "Très douloureux" },
-          { "value": 4, "text": "Insupportable" }
+          { "value": 1, "text": "Très douloureux" },
+          { "value": 0, "text": "Insupportable" }
         ]
       },
       {
@@ -74,11 +74,11 @@
         "used_in": ["fonction", "total"],
         "text": "Au cours des 4 dernières semaines, avez-vous boité en marchant à cause de votre genou?",
         "choices": [
-          { "value": 0, "text": "Rarement/jamais" },
-          { "value": 1, "text": "Parfois ou juste au début" },
+          { "value": 4, "text": "Rarement/jamais" },
+          { "value": 3, "text": "Parfois ou juste au début" },
           { "value": 2, "text": "Souvent, pas juste au début" },
-          { "value": 3, "text": "La plupart du temps" },
-          { "value": 4, "text": "Tout le temps" }
+          { "value": 1, "text": "La plupart du temps" },
+          { "value": 0, "text": "Tout le temps" }
         ]
       },
       {
@@ -87,11 +87,11 @@
         "used_in": ["fonction", "total"],
         "text": "Au cours des 4 dernières semaines, auriez-vous pu vous agenouiller et vous relever immédiatement après?",
         "choices": [
-          { "value": 0, "text": "Oui, facilement" },
-          { "value": 1, "text": "Avec peu de difficulté" },
+          { "value": 4, "text": "Oui, facilement" },
+          { "value": 3, "text": "Avec peu de difficulté" },
           { "value": 2, "text": "Avec difficulté modérée" },
-          { "value": 3, "text": "Avec difficulté extrême" },
-          { "value": 4, "text": "Non, impossible" }
+          { "value": 1, "text": "Avec difficulté extrême" },
+          { "value": 0, "text": "Non, impossible" }
         ]
       },
       {
@@ -100,11 +100,11 @@
         "used_in": ["total", "douleur"],
         "text": "Au cours des 4 dernières semaines, votre douleur au genou vous a-t-elle dérangé(e) au lit pendant la nuit?",
         "choices": [
-          { "value": 0, "text": "Pas du tout" },
-          { "value": 1, "text": "1 ou 2 nuits" },
+          { "value": 4, "text": "Pas du tout" },
+          { "value": 3, "text": "1 ou 2 nuits" },
           { "value": 2, "text": "Quelques nuits" },
-          { "value": 3, "text": "La plupart des nuits" },
-          { "value": 4, "text": "Toutes les nuits" }
+          { "value": 1, "text": "La plupart des nuits" },
+          { "value": 0, "text": "Toutes les nuits" }
         ]
       },
       {
@@ -113,11 +113,11 @@
         "used_in": ["total", "douleur"],
         "text": "Au cours des 4 dernières semaines, à quel point votre douleur au genou a-t-elle perturbé vos tâches quotidiennes (et ménagères)?",
         "choices": [
-          { "value": 0, "text": "Pas du tout" },
-          { "value": 1, "text": "Légèrement" },
+          { "value": 4, "text": "Pas du tout" },
+          { "value": 3, "text": "Légèrement" },
           { "value": 2, "text": "Modérément" },
-          { "value": 3, "text": "Grandement" },
-          { "value": 4, "text": "Totalement" }
+          { "value": 1, "text": "Grandement" },
+          { "value": 0, "text": "Totalement" }
         ]
       },
       {
@@ -126,11 +126,11 @@
         "used_in": ["total", "douleur"],
         "text": "Au cours des 4 dernières semaines, avez-vous eu la sensation que votre genou pouvait soudainement « lâcher » ou vous faire tomber?",
         "choices": [
-          { "value": 0, "text": "Rarement/jamais" },
-          { "value": 1, "text": "Parfois ou juste au début" },
+          { "value": 4, "text": "Rarement/jamais" },
+          { "value": 3, "text": "Parfois ou juste au début" },
           { "value": 2, "text": "Souvent, pas juste au début" },
-          { "value": 3, "text": "La plupart du temps" },
-          { "value": 4, "text": "Tout le temps" }
+          { "value": 1, "text": "La plupart du temps" },
+          { "value": 0, "text": "Tout le temps" }
         ]
       },
       {
@@ -139,11 +139,11 @@
         "used_in": ["total", "douleur"],
         "text": "Au cours des 4 dernières semaines, auriez-vous pu faire les courses du ménage/l'épicerie de façon autonome?",
         "choices": [
-          { "value": 0, "text": "Oui, facilement" },
-          { "value": 1, "text": "Avec peu de difficulté" },
+          { "value": 4, "text": "Oui, facilement" },
+          { "value": 3, "text": "Avec peu de difficulté" },
           { "value": 2, "text": "Avec difficulté modérée" },
-          { "value": 3, "text": "Avec difficulté extrême" },
-          { "value": 4, "text": "Non, impossible" }
+          { "value": 1, "text": "Avec difficulté extrême" },
+          { "value": 0, "text": "Non, impossible" }
         ]
       },
       {
@@ -152,11 +152,11 @@
         "used_in": ["total", "douleur"],
         "text": "Au cours des 4 dernières semaines, auriez-vous pu descendre un escalier?",
         "choices": [
-          { "value": 0, "text": "Oui, facilement" },
-          { "value": 1, "text": "Avec peu de difficulté" },
+          { "value": 4, "text": "Oui, facilement" },
+          { "value": 3, "text": "Avec peu de difficulté" },
           { "value": 2, "text": "Avec difficulté modérée" },
-          { "value": 3, "text": "Avec difficulté extrême" },
-          { "value": 4, "text": "Non, impossible" }
+          { "value": 1, "text": "Avec difficulté extrême" },
+          { "value": 0, "text": "Non, impossible" }
         ]
       }
     ],

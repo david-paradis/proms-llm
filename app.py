@@ -18,6 +18,7 @@ from constants import (
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+import time
 
 # Charger les variables d'environnement depuis .env
 load_dotenv()
@@ -282,7 +283,7 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
 
 ### Critères de Classification
 
-1. **Détérioration Notable :** Baisse ≥2 points entre collectes OU score final < score initial avec baisse ≥1 point
+1. **Détérioration Notable :** Baisse ≥2 points entre collectes 
 2. **Amélioration Notable :** Hausse ≥2 points entre collectes OU amélioration soutenue ≥1 point
 3. **Stable Problématique :** Score ≤1/4 maintenu sur ≥2 collectes consécutives
 4. **Fluctuation :** Variations importantes (≥2 points) sans tendance claire
@@ -465,7 +466,7 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
 
 ### Critères de Classification
 
-1. **Détérioration Notable :** Baisse ≥2 points entre collectes OU score final < score initial avec baisse ≥1 point
+1. **Détérioration Notable :** Baisse ≥2 points entre collectes
 2. **Amélioration Notable :** Hausse ≥2 points entre collectes OU amélioration soutenue ≥1 point
 3. **Stable Problématique :** Score ≤1/4 maintenu sur ≥2 collectes consécutives
 4. **Fluctuation :** Variations importantes (≥2 points) sans tendance claire
@@ -563,6 +564,8 @@ IMPORTANT: Ta réponse doit être un JSON valide et uniquement du JSON, sans aut
 def get_llm_response(prompt, provider="google", model=None):
     """Obtient une réponse du LLM en fonction du fournisseur choisi"""
     response = ""
+    start_time = time.time()
+    token_info = None
     
     try:
         if provider == "google":
@@ -600,6 +603,7 @@ def get_llm_response(prompt, provider="google", model=None):
             )
             
             response = response_obj.text
+            # Pour Google, nous n'avons pas accès aux tokens directement
             
         elif provider == "azure":
             # Configuration Azure OpenAI
@@ -627,12 +631,20 @@ def get_llm_response(prompt, provider="google", model=None):
                 max_completion_tokens=100000
             )
             
-            # Extraction de la réponse
+            # Extraction de la réponse et des informations sur les tokens
             if hasattr(response_obj, 'choices') and len(response_obj.choices) > 0:
                 if hasattr(response_obj.choices[0], 'message'):
                     response = response_obj.choices[0].message.content
                 else:
                     response = str(response_obj.choices[0])
+                
+                # Extraire les informations sur les tokens
+                if hasattr(response_obj, 'usage'):
+                    token_info = {
+                        'prompt_tokens': response_obj.usage.prompt_tokens,
+                        'completion_tokens': response_obj.usage.completion_tokens,
+                        'total_tokens': response_obj.usage.total_tokens
+                    }
             else:
                 response = str(response_obj)
             
@@ -641,6 +653,22 @@ def get_llm_response(prompt, provider="google", model=None):
             
     except Exception as e:
         response = f"Erreur lors de l'appel au LLM: {str(e)}"
+    
+    end_time = time.time()
+    execution_time = end_time - start_time
+    
+    # Créer un expander pour afficher les logs dans le navigateur
+    with st.expander("Logs de la réponse LLM"):
+        st.write(f"Temps d'exécution: {execution_time:.2f} secondes")
+        st.write(f"Provider: {provider}")
+        st.write(f"Modèle: {model or llm_config[provider]['model']}")
+        if token_info:
+            st.write("Utilisation des tokens:")
+            st.write(f"- Tokens du prompt: {token_info['prompt_tokens']}")
+            st.write(f"- Tokens de la réponse: {token_info['completion_tokens']}")
+            st.write(f"- Total des tokens: {token_info['total_tokens']}")
+        st.write("Réponse complète:")
+        st.code(response, language="json")
         
     return response
 
@@ -978,10 +1006,6 @@ if selected_patient:
                     # Afficher le prompt utilisé (collapsible)
                     with st.expander("Voir le prompt utilisé"):
                         st.code(structured_prompt)
-                    
-                    # Afficher le JSON brut (collapsible)
-                    with st.expander("Voir l'analyse JSON brute"):
-                        st.json(analysis_json)
                     
                 except json.JSONDecodeError:
                     st.error("Erreur: La réponse du LLM n'est pas un JSON valide")
