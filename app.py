@@ -49,7 +49,7 @@ QUESTIONNAIRE_CONFIGS = {
 - 20-29 : Symptômes modérés.
 - 30-39 : Symptômes légers.
 - 40-48 : Fonction satisfaisante du genou.
-- Une amélioration de 5 points est généralement considérée comme cliniquement significative (Minimal Clinically Important Difference - MCID).
+- Une différence de 5 points est généralement considérée comme cliniquement significative (Minimal Clinically Important Difference - MCID).
 - Comparer le score actuel au score précédent pour évaluer l'évolution (amélioration, détérioration, stabilité).
 - Noter toute baisse significative ou score restant très bas malgré le traitement.
 - Analyser séparément les domaines de douleur et de fonction.
