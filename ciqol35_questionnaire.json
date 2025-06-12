@@ -1,0 +1,504 @@
+{
+    "questionnaire": "CIQOL-35 (Cochlear Implant Quality of Life)",
+    "description": "Questionnaire de qualité de vie spécifique aux implants cochléaires sur les 2 dernières semaines",
+    "license": "CIQOL-35",
+    "questions": [
+      {
+        "id": "CIQOL_001",
+        "calculation_variable_name": "question1",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à comprendre la parole à la télévision ou à la radio?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_002",
+        "calculation_variable_name": "question2",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à comprendre la parole au téléphone?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_003",
+        "calculation_variable_name": "question3",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à comprendre la parole dans le bruit de fond?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_004",
+        "calculation_variable_name": "question4",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à comprendre la parole dans une conversation de groupe?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_005",
+        "calculation_variable_name": "question5",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à comprendre la parole quand vous ne pouvez pas voir le visage de l'orateur?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_006",
+        "calculation_variable_name": "question6",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à comprendre la parole quand quelqu'un parle rapidement?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_007",
+        "calculation_variable_name": "question7",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à comprendre la parole avec un accent différent?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_008",
+        "calculation_variable_name": "question8",
+        "used_in": ["total", "communication"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à localiser d'où vient un son?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_009",
+        "calculation_variable_name": "question9",
+        "used_in": ["total", "social"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) exclu(e) des conversations en famille?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_010",
+        "calculation_variable_name": "question10",
+        "used_in": ["total", "social"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) exclu(e) des conversations avec vos amis?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_011",
+        "calculation_variable_name": "question11",
+        "used_in": ["total", "social"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous évité les situations sociales à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_012",
+        "calculation_variable_name": "question12",
+        "used_in": ["total", "social"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous évité les restaurants à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_013",
+        "calculation_variable_name": "question13",
+        "used_in": ["total", "social"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous limité vos activités sociales à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_014",
+        "calculation_variable_name": "question14",
+        "used_in": ["total", "social"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) isolé(e) à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_015",
+        "calculation_variable_name": "question15",
+        "used_in": ["total", "emotionnel"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) frustré(e) par votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_016",
+        "calculation_variable_name": "question16",
+        "used_in": ["total", "emotionnel"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) anxieux/anxieuse à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_017",
+        "calculation_variable_name": "question17",
+        "used_in": ["total", "emotionnel"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) déprimé(e) à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_018",
+        "calculation_variable_name": "question18",
+        "used_in": ["total", "emotionnel"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) en colère à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_019",
+        "calculation_variable_name": "question19",
+        "used_in": ["total", "emotionnel"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) embarrassé(e) à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_020",
+        "calculation_variable_name": "question20",
+        "used_in": ["total", "emotionnel"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous manqué de confiance en vous à cause de votre audition?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_021",
+        "calculation_variable_name": "question21",
+        "used_in": ["total", "environnemental"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à entendre les sons d'alarme (fumée, sécurité)?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_022",
+        "calculation_variable_name": "question22",
+        "used_in": ["total", "environnemental"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à entendre les véhicules qui approchent?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_023",
+        "calculation_variable_name": "question23",
+        "used_in": ["total", "environnemental"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à entendre quelqu'un vous appeler de loin?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_024",
+        "calculation_variable_name": "question24",
+        "used_in": ["total", "environnemental"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à entendre la sonnerie du téléphone?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_025",
+        "calculation_variable_name": "question25",
+        "used_in": ["total", "environnemental"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des difficultés à entendre la sonnette de la porte?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_026",
+        "calculation_variable_name": "question26",
+        "used_in": ["total", "fatigue"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) fatigué(e) à force d'écouter?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_027",
+        "calculation_variable_name": "question27",
+        "used_in": ["total", "fatigue"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous senti(e) épuisé(e) mentalement à force d'écouter?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_028",
+        "calculation_variable_name": "question28",
+        "used_in": ["total", "fatigue"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu besoin de pauses pour récupérer de l'effort d'écoute?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_029",
+        "calculation_variable_name": "question29",
+        "used_in": ["total", "usage"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous éteint votre implant cochléaire pour avoir du silence?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_030",
+        "calculation_variable_name": "question30",
+        "used_in": ["total", "usage"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous retiré votre implant cochléaire dans des situations bruyantes?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_031",
+        "calculation_variable_name": "question31",
+        "used_in": ["total", "usage"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous été dérangé(e) par des sons trop forts avec votre implant?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_032",
+        "calculation_variable_name": "question32",
+        "used_in": ["total", "usage"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence avez-vous eu des problèmes techniques avec votre implant?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_033",
+        "calculation_variable_name": "question33",
+        "used_in": ["total", "usage"],
+        "text": "Au cours des 2 dernières semaines, à quelle fréquence vous êtes-vous inquiété(e) de problèmes avec votre implant?",
+        "choices": [
+          { "value": 1, "text": "Jamais" },
+          { "value": 2, "text": "Rarement" },
+          { "value": 3, "text": "Parfois" },
+          { "value": 4, "text": "Souvent" },
+          { "value": 5, "text": "Toujours" }
+        ]
+      },
+      {
+        "id": "CIQOL_034",
+        "calculation_variable_name": "question34",
+        "used_in": ["total", "qualite_vie"],
+        "text": "Au cours des 2 dernières semaines, dans quelle mesure votre audition a-t-elle affecté votre qualité de vie globale?",
+        "choices": [
+          { "value": 1, "text": "Pas du tout" },
+          { "value": 2, "text": "Un peu" },
+          { "value": 3, "text": "Modérément" },
+          { "value": 4, "text": "Beaucoup" },
+          { "value": 5, "text": "Énormément" }
+        ]
+      },
+      {
+        "id": "CIQOL_035",
+        "calculation_variable_name": "question35",
+        "used_in": ["total", "qualite_vie"],
+        "text": "Au cours des 2 dernières semaines, dans quelle mesure êtes-vous satisfait(e) de votre implant cochléaire?",
+        "choices": [
+          { "value": 5, "text": "Très satisfait(e)" },
+          { "value": 4, "text": "Satisfait(e)" },
+          { "value": 3, "text": "Moyennement satisfait(e)" },
+          { "value": 2, "text": "Peu satisfait(e)" },
+          { "value": 1, "text": "Pas du tout satisfait(e)" }
+        ]
+      }
+    ],
+    "formulas": [
+      {
+        "nom": "Communication",
+        "description": "Évalue les difficultés de communication et de compréhension",
+        "equation": "(100/40)*(question1+question2+question3+question4+question5+question6+question7+question8)"
+      },
+      {
+        "nom": "Social",
+        "description": "Évalue l'impact social et l'isolement",
+        "equation": "(100/30)*(question9+question10+question11+question12+question13+question14)"
+      },
+      {
+        "nom": "Emotionnel",
+        "description": "Évalue l'impact émotionnel et psychologique",
+        "equation": "(100/30)*(question15+question16+question17+question18+question19+question20)"
+      },
+      {
+        "nom": "Environnemental",
+        "description": "Évalue la perception des sons environnementaux",
+        "equation": "(100/25)*(question21+question22+question23+question24+question25)"
+      },
+      {
+        "nom": "Fatigue",
+        "description": "Évalue la fatigue liée à l'écoute",
+        "equation": "(100/15)*(question26+question27+question28)"
+      },
+      {
+        "nom": "Usage",
+        "description": "Évalue l'usage et les problèmes techniques",
+        "equation": "(100/25)*(question29+question30+question31+question32+question33)"
+      },
+      {
+        "nom": "Qualite_vie",
+        "description": "Évalue la qualité de vie globale et la satisfaction",
+        "equation": "(100/10)*(question34+question35)"
+      },
+      {
+        "nom": "Total",
+        "description": "Score total du questionnaire CIQOL-35",
+        "equation": "question1+question2+question3+question4+question5+question6+question7+question8+question9+question10+question11+question12+question13+question14+question15+question16+question17+question18+question19+question20+question21+question22+question23+question24+question25+question26+question27+question28+question29+question30+question31+question32+question33+question34+question35"
+      }
+    ]
+} 

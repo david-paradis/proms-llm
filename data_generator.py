@@ -56,13 +56,13 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
         
         # Générer des dates de référence pour chaque type de questionnaire
         reference_dates = {}
-        for q_type in ["OKS", "EQ-5D", "Cochlear Implant"]:
+        for q_type in ["OKS", "EQ-5D", "Cochlear Implant", "CIQOL-35"]:
             if random.random() < 0.7:  # 70% de chance d'avoir une référence
                 # Choisir une date aléatoire entre la première et la dernière collecte
                 ref_date = random.choice(dates) + timedelta(days=random.randint(1, 30))
                 reference_dates[q_type] = {
                     "date": ref_date,
-                    "professional": random.choice(REFERENCE_PROFESSIONALS[q_type])
+                    "professional": random.choice(REFERENCE_PROFESSIONALS.get(q_type, ["Audiologiste", "Orthophoniste"]))
                 }
         
         current_oks_score = initial_oks_score
@@ -81,7 +81,7 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
         current_eq_vas = initial_eq_vas
 
         for i, date in enumerate(dates):
-            q_type = random.choice(["OKS", "EQ-5D", "Cochlear Implant"])
+            q_type = random.choice(["OKS", "EQ-5D", "Cochlear Implant", "CIQOL-35"])
             entry = {
                 "patient_id": patient_id,
                 "date_collecte": date.strftime("%Y-%m-%d"),
@@ -277,6 +277,79 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
                     current_cochlear_scores["emotional_1"] = max(1, min(4, current_cochlear_scores["emotional_1"] + emotional_change))
                     entry["score_emotional_1"] = current_cochlear_scores["emotional_1"]
 
+            elif q_type == "CIQOL-35":
+                # --- CIQOL-35 Score Generation ---
+                is_post_op = date >= operation_date
+                
+                # Initialiser les scores CIQOL-35 si ce n'est pas déjà fait
+                if not hasattr(generate_synthetic_data, 'current_ciqol_scores'):
+                    generate_synthetic_data.current_ciqol_scores = {}
+                if patient_id not in generate_synthetic_data.current_ciqol_scores:
+                    # Scores initiaux (1-5, où 1 = jamais/meilleur, 5 = toujours/pire)
+                    if evolution_pattern == "improvement":
+                        initial_scores = [random.randint(3, 5) for _ in range(35)]  # Commence moins bien
+                    elif evolution_pattern == "deterioration":
+                        initial_scores = [random.randint(1, 3) for _ in range(35)]  # Commence bien
+                    else:
+                        initial_scores = [random.randint(2, 4) for _ in range(35)]  # Scores moyens
+                    
+                    # Question 35 (satisfaction) est inversée : 5 = très satisfait, 1 = pas du tout satisfait
+                    if evolution_pattern == "improvement":
+                        initial_scores[34] = random.randint(1, 3)  # Commence peu satisfait
+                    elif evolution_pattern == "deterioration":
+                        initial_scores[34] = random.randint(3, 5)  # Commence satisfait
+                    else:
+                        initial_scores[34] = random.randint(2, 4)
+                    
+                    generate_synthetic_data.current_ciqol_scores[patient_id] = initial_scores
+                
+                current_scores = generate_synthetic_data.current_ciqol_scores[patient_id].copy()
+                
+                # Déterminer la tendance de changement
+                if entry["reference_professional"] in ["Audiologiste", "Orthophoniste"]:
+                    change_tendency = -1  # Amélioration (scores diminuent sauf pour Q35)
+                else:
+                    if evolution_pattern == "improvement":
+                        if is_post_op:
+                            change_tendency = -1.5  # Forte amélioration
+                        else:
+                            change_tendency = -0.5  # Légère amélioration
+                    elif evolution_pattern == "deterioration":
+                        if is_post_op:
+                            change_tendency = -0.5  # Légère amélioration (malgré la détérioration globale)
+                        else:
+                            change_tendency = 1  # Détérioration
+                    elif evolution_pattern == "fluctuating":
+                        if is_post_op:
+                            change_tendency = random.choice([-1, -0.5, 0])
+                        else:
+                            change_tendency = random.choice([-1, 0, 1])
+                    else:  # stable
+                        if is_post_op:
+                            change_tendency = -0.5  # Légère amélioration
+                        else:
+                            change_tendency = 0
+                
+                # Appliquer les changements aux 35 questions
+                for q_idx in range(35):
+                    change = int(change_tendency) + random.choice([-1, 0, 0, 1])
+                    
+                    # Question 35 (satisfaction) a une logique inversée
+                    if q_idx == 34:  # Question 35 (index 34)
+                        change = -change  # Inverser le changement
+                        current_scores[q_idx] = max(1, min(5, current_scores[q_idx] + change))
+                    else:
+                        current_scores[q_idx] = max(1, min(5, current_scores[q_idx] + change))
+                    
+                    entry[f"score_q{q_idx + 1}"] = current_scores[q_idx]
+                
+                # Calculer le score total (simple somme)
+                total_score = sum(current_scores)
+                entry["score_total"] = total_score
+                
+                # Sauvegarder les scores mis à jour
+                generate_synthetic_data.current_ciqol_scores[patient_id] = current_scores
+
             data.append(entry)
         
         # Stocker les informations du patient
@@ -293,8 +366,10 @@ def generate_synthetic_data(num_patients=10, entries_per_patient=(3, 8), file_pa
     oks_q_cols = [f"score_q{i}" for i in range(1, 13)]
     eq_dim_cols = [f"score_eq_{dim}" for dim in EQ5D_DIMENSIONS]
     cochlear_cols = [f"score_{q}" for category in COCHLEAR_IMPLANT_CATEGORIES.values() for q in category]
+    ciqol_q_cols = [f"score_q{i}" for i in range(1, 36)]  # CIQOL-35 questions 1-35
+    
     cols = ["patient_id", "date_collecte", "date_operation", "periode", "questionnaire_type", 
-            "reference_professional", "reference_date", "score_total"] + oks_q_cols + eq_dim_cols + ["score_eq_vas"] + cochlear_cols
+            "reference_professional", "reference_date", "score_total"] + oks_q_cols + eq_dim_cols + ["score_eq_vas"] + cochlear_cols + ciqol_q_cols
     
     # Add missing columns with NaN
     for col in cols:

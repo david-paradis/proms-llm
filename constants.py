@@ -28,7 +28,8 @@ COCHLEAR_IMPLANT_CATEGORIES = {
 REFERENCE_PROFESSIONALS = {
     "OKS": ["Physiothérapeute", "Kinésithérapeute", "Ergothérapeute"],
     "EQ-5D": ["Infirmier spécialisé", "Psychologue", "Travailleur social"],
-    "Cochlear Implant": ["Audiologiste", "Orthophoniste", "Psychologue"]
+    "Cochlear Implant": ["Audiologiste", "Orthophoniste", "Psychologue"],
+    "CIQOL-35": ["Audiologiste", "Orthophoniste", "Psychologue", "ORL", "Infirmier spécialisé"]
 }
 
 # Texte des questions EQ-5D pour enrichir le prompt détaillé
