@@ -446,8 +446,8 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
     "notable_deteriorations": {{
       "items": [
         {{
-          "id": "questionX",
-          "name": "Résumé de la question",
+          "id": "questionX/calculated_score_X",
+          "name": "Résumé de la question ou du domaine du score calculé",
           "description": "Évolution détaillée avec scores explicites et contexte temporel"
         }}
       ]
@@ -455,8 +455,8 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
     "stable_problematic_areas": {{
       "items": [
         {{
-          "id": "questionX",
-          "name": "Résumé de la question",
+          "id": "questionX/calculated_score_X",
+          "name": "Résumé de la question ou du domaine du score calculé",
           "description": "Score persistant avec valeurs explicites et impact fonctionnel"
         }}
       ]
@@ -464,9 +464,9 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
     "notable_improvements": {{
       "items": [
         {{
-          "id": "douleur",
-          "name": "Résumé du domaine de la douleur",
-          "description": "Progression positive de la douleur avec scores calculés explicites"
+          "id": "questionX/calculate_score_X",
+          "name": "Résumé de la question ou du domaine du score calculé",
+          "description": "exemple : Progression positive de la douleur avec scores calculés explicites"
         }}
       ]
     }}
@@ -486,7 +486,7 @@ Tu es un assistant médical spécialisé dans l'analyse comparative de questionn
 ## Instructions de Traitement
 
 1. **Analyser chronologiquement** toutes les collectes pour identifier les tendances
-2. **Utiliser les scores calculés** fournis dans les données d'entrée pour identifier les domaines fonctionnels
+2. **Utiliser les scores calculés** fournis dans les données d'entrée pour identifier les domaines fonctionnels, mais exclure les scores totaux ou les scores non pertinents pour l'analyse
 3. **Déterminer le contexte opératoire** de chaque collecte
 4. **Calculer les évolutions** par question et identifier les changements significatifs
 5. **Contextualiser temporellement** en utilisant la terminologie médicale standardisée
